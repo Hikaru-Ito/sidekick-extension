@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { features } from '../../../data/features';
+
+export function getStaticPaths() {
+  return features.map((feature) => ({
+    params: { id: feature.id },
+    props: { feature },
+  }));
+}
+
+const { feature } = Astro.props;
+---
+
+<BaseLayout title={`${feature.name} | Sidekick docs`} description={feature.description}>
+  <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+    <a href="/docs" class="text-sm text-fg-muted hover:text-fg-default">&larr; ドキュメントへ戻る</a>
+    <header class="mt-4">
+      <div class="flex items-center gap-3">
+        <span class="rounded-full bg-accent-500/12 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-accent-700 dark:text-accent-300">{feature.category}</span>
+        <span class="rounded-full bg-success/12 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-success">{feature.status}</span>
+      </div>
+      <h1 class="mt-4 text-4xl font-semibold tracking-tight">{feature.name}</h1>
+      <p class="mt-3 text-fg-muted">{feature.description}</p>
+    </header>
+
+    <section class="prose prose-zinc dark:prose-invert mt-10 max-w-none">
+      <h2 class="text-lg font-semibold">主な特徴</h2>
+      <ul class="mt-3 space-y-2 text-sm text-fg-muted">
+        {feature.highlights.map((h) => (
+          <li class="flex items-start gap-2">
+            <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-accent-500"></span>
+            <span>{h}</span>
+          </li>
+        ))}
+      </ul>
+
+      {feature.id === 'auto-reload' && (
+        <div class="mt-8 space-y-6">
+          <div>
+            <h2 class="text-lg font-semibold">使い方</h2>
+            <ol class="mt-3 space-y-3 text-sm text-fg-muted">
+              <li>1. ツールバーのSidekickアイコンをクリック</li>
+              <li>2. メニューから「定期リロード」を選択</li>
+              <li>3. プリセット (15秒〜1時間) またはカスタム秒数を指定</li>
+              <li>4. トグルをONにすると現在のタブが自動でリロードされ始める</li>
+            </ol>
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold">技術的な詳細</h2>
+            <ul class="mt-3 space-y-2 text-sm text-fg-muted">
+              <li>1分以上の間隔は <code class="rounded bg-surface-muted px-1.5 py-0.5 text-xs">chrome.alarms</code> で省リソース実行</li>
+              <li>1分未満は service worker 内の <code class="rounded bg-surface-muted px-1.5 py-0.5 text-xs">setTimeout</code> で実行</li>
+              <li>設定は <code class="rounded bg-surface-muted px-1.5 py-0.5 text-xs">chrome.storage.local</code> に保存。タブごとに管理</li>
+              <li>タブが閉じられると自動でクリーンアップ</li>
+            </ul>
+          </div>
+        </div>
+      )}
+    </section>
+  </article>
+</BaseLayout>

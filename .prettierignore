@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.output/
+.wxt/
+.astro/
+.turbo/
+pnpm-lock.yaml
+*.min.js
+*.min.css

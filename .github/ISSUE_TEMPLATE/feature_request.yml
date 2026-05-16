@@ -1,0 +1,32 @@
+name: 機能リクエスト
+description: 新しい機能を提案する
+labels: [enhancement]
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: なぜこの機能が必要か
+      description: 解決したい課題や利用シーンを書いてください
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提案する解決方法
+      description: どのように動くか、UIの想定なども含めて
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: カテゴリ
+      options:
+        - productivity
+        - automation
+        - developer
+        - privacy
+        - lifestyle
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 検討した代替案

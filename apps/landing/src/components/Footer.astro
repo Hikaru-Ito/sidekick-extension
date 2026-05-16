@@ -1,0 +1,26 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-24 border-t border-border bg-surface-muted/40">
+  <div
+    class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-xs text-fg-muted sm:flex-row sm:items-center sm:justify-between sm:px-6"
+  >
+    <p>© {year} Sidekick contributors · MIT License</p>
+    <div class="flex gap-4">
+      <a
+        href="https://github.com/Hikaru-Ito/sidekick-extension"
+        class="hover:text-fg-default"
+        target="_blank"
+        rel="noopener noreferrer">GitHub</a
+      >
+      <a
+        href="https://github.com/Hikaru-Ito/sidekick-extension/issues"
+        class="hover:text-fg-default"
+        target="_blank"
+        rel="noopener noreferrer">Issues</a
+      >
+      <a href="/docs/contributing" class="hover:text-fg-default">Contributing</a>
+    </div>
+  </div>
+</footer>

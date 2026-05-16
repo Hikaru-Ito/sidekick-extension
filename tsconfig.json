@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "./apps/extension" },
+    { "path": "./apps/landing" },
+    { "path": "./packages/ui-kit" }
+  ]
+}

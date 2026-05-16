@@ -1,0 +1,11 @@
+{
+  "extends": "@sidekick/tsconfig/extension.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@features/*": ["src/features/*"]
+    }
+  },
+  "include": [".wxt/types/**/*", "src/**/*", "wxt.config.ts"]
+}

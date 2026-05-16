@@ -1,0 +1,61 @@
+---
+const links = [
+  { href: '/#features', label: '機能' },
+  { href: '/install', label: 'インストール' },
+  { href: '/docs', label: 'ドキュメント' },
+  { href: 'https://github.com/Hikaru-Ito/sidekick-extension', label: 'GitHub', external: true },
+];
+---
+
+<header
+  class="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur-lg"
+>
+  <div class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <a href="/" class="flex items-center gap-2">
+      <span
+        class="flex h-7 w-7 items-center justify-center rounded-md bg-accent-500/12 text-accent-600"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path>
+        </svg>
+      </span>
+      <span class="text-sm font-semibold tracking-tight">Sidekick</span>
+      <span
+        class="hidden sm:inline rounded-full bg-surface-muted px-2 py-0.5 text-[10px] font-medium text-fg-muted"
+      >
+        Open Source
+      </span>
+    </a>
+
+    <nav class="hidden items-center gap-6 md:flex">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            target={link.external ? '_blank' : undefined}
+            rel={link.external ? 'noopener noreferrer' : undefined}
+            class="text-sm text-fg-muted transition-colors hover:text-fg-default"
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <a
+      href="/install"
+      class="inline-flex h-9 items-center rounded-md bg-accent-600 px-4 text-sm font-medium text-white shadow-xs transition-colors hover:bg-accent-700"
+    >
+      インストール
+    </a>
+  </div>
+</header>

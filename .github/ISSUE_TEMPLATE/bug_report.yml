@@ -1,0 +1,31 @@
+name: バグ報告
+description: 動作不良を報告する
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 何が起きたか
+      description: 再現手順と期待した挙動も書いてください
+    validations:
+      required: true
+  - type: input
+    id: chrome-version
+    attributes:
+      label: Chromeのバージョン
+      placeholder: '例: 129.0.6668.100'
+  - type: input
+    id: sidekick-version
+    attributes:
+      label: Sidekickのバージョン
+      placeholder: '例: 0.1.0'
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: '例: macOS 14.5'
+  - type: textarea
+    id: logs
+    attributes:
+      label: コンソールログ (任意)
+      render: shell

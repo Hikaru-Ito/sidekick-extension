@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { colors, radii, fontSizes } from '@sidekick/config';
+---
+
+<BaseLayout title="デザインシステム | Sidekick">
+  <article class="mx-auto max-w-4xl px-4 py-16 sm:px-6">
+    <a href="/docs" class="text-sm text-fg-muted hover:text-fg-default">&larr; ドキュメントへ戻る</a>
+    <h1 class="mt-4 text-4xl font-semibold tracking-tight">デザインシステム</h1>
+    <p class="mt-3 text-fg-muted">
+      Sidekick のUI設計言語。Mobbinリサーチに基づくニュートラル＋シングルアクセントの構成です。
+    </p>
+
+    <section class="mt-12 space-y-12 text-sm text-fg-muted">
+      <div>
+        <h2 class="text-xl font-semibold text-fg-default">アクセントカラー: Iris</h2>
+        <p class="mt-2">Productivity tool らしい知性 + 中立性を表す青紫系。</p>
+        <div class="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-11">
+          {Object.entries(colors.iris).map(([weight, hex]) => (
+            <div class="text-center">
+              <div class="aspect-square rounded-md border border-border" style={`background:${hex}`}></div>
+              <div class="mt-1 text-[10px] font-medium text-fg-default">{weight}</div>
+              <div class="text-[10px] text-fg-subtle font-mono">{hex}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-fg-default">ニュートラル: Zinc</h2>
+        <div class="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-11">
+          {Object.entries(colors.zinc).map(([weight, hex]) => (
+            <div class="text-center">
+              <div class="aspect-square rounded-md border border-border" style={`background:${hex}`}></div>
+              <div class="mt-1 text-[10px] font-medium text-fg-default">{weight}</div>
+              <div class="text-[10px] text-fg-subtle font-mono">{hex}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-fg-default">タイポグラフィ</h2>
+        <p class="mt-2">Inter Variable (font-feature-settings: cv11, ss01, ss03)</p>
+        <div class="mt-4 space-y-2 rounded-lg border border-border bg-surface-elevated p-6">
+          {Object.entries(fontSizes).map(([name, [size]]) => (
+            <div class="flex items-baseline gap-4">
+              <code class="w-12 shrink-0 text-xs text-fg-subtle">{name}</code>
+              <code class="w-16 shrink-0 text-xs text-fg-subtle">{size}</code>
+              <span style={`font-size:${size}`} class="text-fg-default">The quick brown fox 走るキツネ</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-fg-default">角丸</h2>
+        <div class="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-7">
+          {Object.entries(radii).map(([name, value]) => (
+            <div class="text-center">
+              <div
+                class="h-12 w-full bg-accent-500/15 border border-accent-500/30"
+                style={`border-radius:${value}`}
+              ></div>
+              <div class="mt-1 text-[10px] font-medium">{name}</div>
+              <div class="text-[10px] text-fg-subtle font-mono">{value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold text-fg-default">デザイン原則</h2>
+        <ul class="mt-3 space-y-2 list-disc pl-6">
+          <li><strong>ニュートラル&gt;装飾</strong>: 機能を邪魔しないトーン。アクセントは1色のみ。</li>
+          <li><strong>密度の階層</strong>: アイコンタイル(36px) + 14px title + 12px description で視線誘導。</li>
+          <li><strong>動きは控えめに</strong>: 120-240ms / ease-out。ポップアップ内ではバウンスを使わない。</li>
+          <li><strong>アクセシビリティ</strong>: contrast 4.5:1以上、focus-visible のリング必須。</li>
+          <li><strong>ダーク/ライト両対応</strong>: CSS変数(--sk-*)経由でセマンティック切替。</li>
+        </ul>
+      </div>
+    </section>
+  </article>
+</BaseLayout>

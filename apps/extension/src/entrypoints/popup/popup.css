@@ -1,0 +1,10 @@
+html,
+body {
+  width: 380px;
+  margin: 0;
+}
+
+body {
+  max-height: 600px;
+  overflow-y: auto;
+}

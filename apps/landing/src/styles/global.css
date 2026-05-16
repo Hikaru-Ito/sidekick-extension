@@ -1,0 +1,14 @@
+@import '@sidekick/ui-kit/styles.css';
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Subtle grid background for hero */
+.bg-grid {
+  background-image:
+    linear-gradient(rgb(var(--sk-border) / 0.6) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--sk-border) / 0.6) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 80%);
+}
