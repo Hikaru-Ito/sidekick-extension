@@ -1,30 +1,29 @@
 # Code of Conduct
 
-## Our Pledge
+## Our pledge
 
-私たちは、すべての貢献者と利用者にとって、嫌がらせのない健全な環境を提供することを誓います。
-年齢、体格、障害の有無、民族、性同一性、性的指向、その他の属性に関わらず、すべての人を歓迎します。
+We pledge to make participation in our project and community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
-## Our Standards
+## Our standards
 
-ポジティブな環境を作るための例:
+Examples of behavior that contributes to a positive environment:
 
-- 思いやりのある言葉遣い
-- 異なる視点や経験の尊重
-- 建設的な批判の歓迎と受容
-- コミュニティにとって最善の選択を志向
+- Using welcoming and inclusive language
+- Respecting differing viewpoints and experiences
+- Gracefully accepting constructive criticism
+- Focusing on what is best for the community
 
-許容されない行為:
+Examples of unacceptable behavior:
 
-- 性的な言動、画像、注目要求
-- トローリング、侮辱、人身攻撃、政治的攻撃
-- 公的または私的なハラスメント
-- 明示的な許可なく他者の個人情報を公開すること
+- Sexualized language or imagery, and unwelcome sexual attention or advances
+- Trolling, insulting, derogatory comments, and personal or political attacks
+- Public or private harassment
+- Publishing others' private information without explicit permission
 
 ## Enforcement
 
-問題のある行為を目撃した場合は、コアメンテイナまでご連絡ください: `hikaru@stract.co.jp`
+If you witness behavior that violates this code, please contact a maintainer: `hikaru@stract.co.jp`.
 
-すべての報告はレビューされ、必要に応じて適切な対応がとられます。
+All reports will be reviewed and acted on as appropriate. We commit to keeping the reporter's identity confidential.
 
-このCode of Conductは [Contributor Covenant](https://www.contributor-covenant.org/) v2.1 を参考にしています。
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org/) v2.1.

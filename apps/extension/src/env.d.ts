@@ -1,7 +1,7 @@
 /**
- * Sidekick extension の補助型定義。
- * - import.meta.glob (Vite)
- * - WXTのモジュール参照
+ * Ambient type declarations for the extension.
+ * - `import.meta.glob` (Vite)
+ * - WXT-provided module references
  */
 
 interface ImportMeta {

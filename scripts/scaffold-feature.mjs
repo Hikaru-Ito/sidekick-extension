@@ -1,17 +1,18 @@
 #!/usr/bin/env node
 /**
- * Sidekick feature scaffolder
+ * Sidekick feature scaffolder.
  *
  * Usage:
- *   pnpm gen:feature <feature-id> [--category=productivity] [--name="表示名"]
+ *   pnpm gen:feature <feature-id> [--category=productivity] [--name="Display Name"]
  *
- * 何が生成されるか:
+ * What gets generated:
  *   apps/extension/src/features/<id>/manifest.ts
  *   apps/extension/src/features/<id>/Panel.tsx
  *   docs/features/<id>.md
- *   apps/landing/src/data/features.ts に1行追記 (任意)
+ *   apps/landing/src/data/features.ts gets a new entry appended
  *
- * registry.ts は import.meta.glob で自動収集するため変更不要。
+ * No changes are required to `registry.ts` — it picks up the new manifest via
+ * `import.meta.glob`.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -22,13 +23,13 @@ const root = resolve(dirname(__filename), '..');
 
 const args = process.argv.slice(2);
 if (args.length === 0) {
-  console.error('Usage: pnpm gen:feature <feature-id> [--category=automation] [--name="表示名"]');
+  console.error('Usage: pnpm gen:feature <feature-id> [--category=automation] [--name="Display Name"]');
   process.exit(1);
 }
 
 const id = args[0];
 if (!/^[a-z][a-z0-9-]*$/.test(id)) {
-  console.error('feature id は kebab-case (英小文字+数字+ハイフン) で指定してください');
+  console.error('feature id must be kebab-case (lowercase letters, digits, and dashes only)');
   process.exit(1);
 }
 
@@ -41,7 +42,7 @@ const name = flag('name', toTitleCase(id));
 const category = flag('category', 'productivity');
 const validCategories = ['productivity', 'automation', 'developer', 'privacy', 'lifestyle'];
 if (!validCategories.includes(category)) {
-  console.error(`category は次のいずれか: ${validCategories.join(', ')}`);
+  console.error(`category must be one of: ${validCategories.join(', ')}`);
   process.exit(1);
 }
 
@@ -57,7 +58,7 @@ function toPascalCase(s) {
 
 const featureDir = join(root, 'apps/extension/src/features', id);
 if (existsSync(featureDir)) {
-  console.error(`feature '${id}' は既に存在します: ${featureDir}`);
+  console.error(`feature '${id}' already exists at ${featureDir}`);
   process.exit(1);
 }
 
@@ -70,7 +71,7 @@ import { ${componentName} } from './Panel';
 export default defineFeature({
   id: '${id}',
   name: '${name}',
-  description: 'TODO: 機能の説明を1-2文で書いてください。',
+  description: 'TODO: describe what this feature does in 1–2 sentences.',
   icon: Sparkles,
   iconTone: 'iris',
   category: '${category}',
@@ -87,7 +88,7 @@ export function ${componentName}() {
       <CardContent>
         <h3 className="text-sm font-semibold">${name}</h3>
         <p className="mt-2 text-xs text-fg-muted">
-          ここに UI を実装してください。
+          Implement the feature UI here.
         </p>
       </CardContent>
     </Card>
@@ -103,40 +104,39 @@ const docDir = join(root, 'docs/features');
 mkdirSync(docDir, { recursive: true });
 const doc = `# ${name}
 
-> TODO: 機能の説明を書いてください。
+> TODO: one-line description.
 
-## 概要
+## Overview
 
 TODO
 
-## 使い方
+## How to use
 
-1. ツールバーのSidekickアイコンをクリック
-2. メニューから「${name}」を選択
+1. Click the Sidekick icon in the toolbar
+2. Select "${name}" from the menu
 3. ...
 
-## 設定
+## Settings
 
 TODO
 
-## 技術的な詳細
+## Implementation notes
 
-- カテゴリ: ${category}
+- Category: ${category}
 - Permissions: storage
 
-## 関連
+## See also
 
-- [LP feature page](https://sidekick.stract.dev/docs/features/${id})
-- ソース: \`apps/extension/src/features/${id}/\`
+- [Landing page](https://hikaru-ito.github.io/sidekick-extension/docs/features/${id})
+- Source: \`apps/extension/src/features/${id}/\`
 `;
 writeFileSync(join(docDir, `${id}.md`), doc);
 
-// apps/landing/src/data/features.ts に1行追記
+// Append an entry to apps/landing/src/data/features.ts
 const dataFile = join(root, 'apps/landing/src/data/features.ts');
 if (existsSync(dataFile)) {
   const content = readFileSync(dataFile, 'utf8');
-  const insertion = `  {\n    id: '${id}',\n    name: '${name}',\n    description: 'TODO: 機能の説明を書いてください。',\n    category: '${category}',\n    status: 'beta',\n    highlights: [],\n  },\n`;
-  // features 配列に挿入
+  const insertion = `  {\n    id: '${id}',\n    name: '${name}',\n    description: 'TODO: describe what this feature does.',\n    category: '${category}',\n    status: 'beta',\n    highlights: [],\n  },\n`;
   const updated = content.replace(
     /(export const features: LandingFeature\[\] = \[)([\s\S]*?)(\];)/,
     (_match, head, body, tail) => `${head}${body}${insertion}${tail}`,
@@ -146,13 +146,13 @@ if (existsSync(dataFile)) {
   }
 }
 
-console.log(`\n✨ Feature '${id}' を作成しました\n`);
+console.log(`\n✨ Scaffolded feature '${id}'\n`);
 console.log(`  apps/extension/src/features/${id}/manifest.ts`);
 console.log(`  apps/extension/src/features/${id}/Panel.tsx`);
 console.log(`  docs/features/${id}.md`);
-console.log(`  apps/landing/src/data/features.ts (1行追記)\n`);
-console.log(`次のステップ:`);
-console.log(`  - manifest.ts の description / icon / iconTone を書き換え`);
-console.log(`  - Panel.tsx に UI を実装`);
-console.log(`  - 必要なら background.ts や storage.ts を追加`);
-console.log(`  - pnpm --filter @sidekick/extension dev で確認\n`);
+console.log(`  apps/landing/src/data/features.ts (entry appended)\n`);
+console.log(`Next steps:`);
+console.log(`  - Edit manifest.ts: update description, icon, and iconTone`);
+console.log(`  - Implement the UI in Panel.tsx`);
+console.log(`  - Add background.ts / storage.ts if needed`);
+console.log(`  - Run pnpm --filter @sidekick/extension dev to try it out\n`);

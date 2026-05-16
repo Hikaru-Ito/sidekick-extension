@@ -1,0 +1,170 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { colors, radii, fontSizes } from '@sidekick/config';
+import { t } from '../i18n/ui';
+import { localizePath } from '../i18n/utils';
+import type { Locale } from '../i18n/types';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const copy = {
+  en: {
+    title: 'Design System',
+    subtitle: 'The UI language for Sidekick — neutral base + single accent.',
+    accent: 'Accent — Iris',
+    accentDesc:
+      'An indigo-violet that reads as intelligent and neutral; suited to productivity tooling.',
+    neutral: 'Neutral — Zinc',
+    typography: 'Typography',
+    radii: 'Radii',
+    principles: 'Principles',
+    principlesList: [
+      {
+        strong: 'Neutral > decorative',
+        text: ': Calm tone that does not fight content. Only one accent color.',
+      },
+      {
+        strong: 'Hierarchy through density',
+        text: ': Icon tile (36px) + 14px title + 12px description guides the eye.',
+      },
+      {
+        strong: 'Restrained motion',
+        text: ': 120-240ms / ease-out. No bouncy easings in the popup.',
+      },
+      { strong: 'Accessibility', text: ': contrast ≥4.5:1; focus-visible rings required.' },
+      {
+        strong: 'Light & dark',
+        text: ': Surface tokens use CSS variables (`--sk-*`) for semantic theming.',
+      },
+    ],
+  },
+  ja: {
+    title: 'デザインシステム',
+    subtitle: 'Sidekick のUI設計言語。ニュートラル＋シングルアクセントの構成。',
+    accent: 'アクセントカラー: Iris',
+    accentDesc: 'Productivity tool らしい知性 + 中立性を表す青紫系。',
+    neutral: 'ニュートラル: Zinc',
+    typography: 'タイポグラフィ',
+    radii: '角丸',
+    principles: 'デザイン原則',
+    principlesList: [
+      { strong: 'ニュートラル>装飾', text: ': 機能を邪魔しないトーン。アクセントは1色のみ。' },
+      {
+        strong: '密度の階層',
+        text: ': アイコンタイル(36px) + 14px title + 12px description で視線誘導。',
+      },
+      {
+        strong: '動きは控えめに',
+        text: ': 120-240ms / ease-out。ポップアップ内ではバウンスを使わない。',
+      },
+      { strong: 'アクセシビリティ', text: ': contrast 4.5:1以上、focus-visible のリング必須。' },
+      { strong: 'ダーク/ライト両対応', text: ': CSS変数(--sk-*)経由でセマンティック切替。' },
+    ],
+  },
+}[locale];
+---
+
+<BaseLayout locale={locale} title={`Sidekick — ${copy.title}`}>
+  <article class="mx-auto max-w-4xl px-4 py-16 sm:px-6">
+    <a
+      href={`${baseUrl}${localizePath('/docs', locale)}`}
+      class="text-fg-muted hover:text-fg-default text-sm">{t(locale, 'docs.back')}</a
+    >
+    <h1 class="mt-4 text-4xl font-semibold tracking-tight">{copy.title}</h1>
+    <p class="text-fg-muted mt-3">{copy.subtitle}</p>
+
+    <section class="text-fg-muted mt-12 space-y-12 text-sm">
+      <div>
+        <h2 class="text-fg-default text-xl font-semibold">{copy.accent}</h2>
+        <p class="mt-2">{copy.accentDesc}</p>
+        <div class="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-11">
+          {
+            Object.entries(colors.iris).map(([weight, hex]) => (
+              <div class="text-center">
+                <div
+                  class="border-border aspect-square rounded-md border"
+                  style={`background:${hex}`}
+                />
+                <div class="text-fg-default mt-1 text-[10px] font-medium">{weight}</div>
+                <div class="text-fg-subtle font-mono text-[10px]">{hex}</div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-fg-default text-xl font-semibold">{copy.neutral}</h2>
+        <div class="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-11">
+          {
+            Object.entries(colors.zinc).map(([weight, hex]) => (
+              <div class="text-center">
+                <div
+                  class="border-border aspect-square rounded-md border"
+                  style={`background:${hex}`}
+                />
+                <div class="text-fg-default mt-1 text-[10px] font-medium">{weight}</div>
+                <div class="text-fg-subtle font-mono text-[10px]">{hex}</div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-fg-default text-xl font-semibold">{copy.typography}</h2>
+        <p class="mt-2">Inter Variable (font-feature-settings: cv11, ss01, ss03)</p>
+        <div class="border-border bg-surface-elevated mt-4 space-y-2 rounded-lg border p-6">
+          {
+            Object.entries(fontSizes).map(([name, [size]]) => (
+              <div class="flex items-baseline gap-4">
+                <code class="text-fg-subtle w-12 shrink-0 text-xs">{name}</code>
+                <code class="text-fg-subtle w-16 shrink-0 text-xs">{size}</code>
+                <span style={`font-size:${size}`} class="text-fg-default">
+                  The quick brown fox 走るキツネ
+                </span>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-fg-default text-xl font-semibold">{copy.radii}</h2>
+        <div class="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-7">
+          {
+            Object.entries(radii).map(([name, value]) => (
+              <div class="text-center">
+                <div
+                  class="bg-accent-500/15 border-accent-500/30 h-12 w-full border"
+                  style={`border-radius:${value}`}
+                />
+                <div class="mt-1 text-[10px] font-medium">{name}</div>
+                <div class="text-fg-subtle font-mono text-[10px]">{value}</div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-fg-default text-xl font-semibold">{copy.principles}</h2>
+        <ul class="mt-3 list-disc space-y-2 pl-6">
+          {
+            copy.principlesList.map((p) => (
+              <li>
+                <strong>{p.strong}</strong>
+                {p.text}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+  </article>
+</BaseLayout>

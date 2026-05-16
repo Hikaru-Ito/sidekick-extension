@@ -1,0 +1,118 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { t } from '../i18n/ui';
+import { localizePath } from '../i18n/utils';
+import type { Locale } from '../i18n/types';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const copy = {
+  en: {
+    title: 'Architecture',
+    monorepo: 'Monorepo layout',
+    pattern: 'Feature manifest pattern',
+    patternDesc:
+      'Each feature default-exports a FeatureManifest. The registry collects them automatically.',
+    registry: 'Auto registry',
+    registryDesc:
+      "`features/registry.ts` uses Vite's `import.meta.glob` to pick up every `manifest.ts` underneath. The popup updates with no manual import wiring.",
+    background: 'Background',
+    backgroundDesc:
+      'Each feature can call `register<Feature>Background()` from its own `background.ts`. To survive MV3 service-worker suspension, state is kept in `chrome.alarms` and `chrome.storage`.',
+  },
+  ja: {
+    title: 'アーキテクチャ',
+    monorepo: 'モノレポ構成',
+    pattern: 'Feature Manifest Pattern',
+    patternDesc:
+      '各機能は FeatureManifest インターフェースを満たすオブジェクトを default export する。',
+    registry: '自動レジストリ',
+    registryDesc:
+      '`features/registry.ts` が Vite の `import.meta.glob` で配下のすべての `manifest.ts` を収集。ポップアップは自動的に新機能を表示します。',
+    background: 'バックグラウンド',
+    backgroundDesc:
+      '各機能は必要に応じて `background.ts` 内で `register<Feature>Background()` を呼び出す。MV3 service worker のライフサイクルに対応するため、chrome.alarms と chrome.storage を中心に状態を管理します。',
+  },
+}[locale];
+---
+
+<BaseLayout locale={locale} title={`Sidekick — ${copy.title}`}>
+  <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+    <a
+      href={`${baseUrl}${localizePath('/docs', locale)}`}
+      class="text-fg-muted hover:text-fg-default text-sm">{t(locale, 'docs.back')}</a
+    >
+    <h1 class="mt-4 text-4xl font-semibold tracking-tight">{copy.title}</h1>
+
+    <section class="text-fg-muted mt-10 space-y-8 text-sm leading-relaxed">
+      <div>
+        <h2 class="text-fg-default text-xl font-semibold">{copy.monorepo}</h2>
+        <div
+          class="border-border mt-3 overflow-hidden rounded-lg border bg-neutral-950 font-mono text-xs text-neutral-200"
+        >
+          <pre
+            class="overflow-x-auto p-4"><code>sidekick-extension/
+├── apps/
+│   ├── extension/      # Chrome MV3 extension (WXT + React)
+│   └── landing/        # Landing page + docs (Astro, bilingual)
+├── packages/
+│   ├── ui-kit/         # Shared React components (Tailwind)
+│   ├── config/         # Design tokens + Tailwind preset
+│   └── tsconfig/       # Shared tsconfig
+├── docs/               # Markdown reference docs
+└── scripts/            # Feature scaffolder</code></pre>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-fg-default text-xl font-semibold">{copy.pattern}</h2>
+        <p class="mt-2">{copy.patternDesc}</p>
+        <div
+          class="border-border mt-3 overflow-hidden rounded-lg border bg-neutral-950 font-mono text-xs text-neutral-200"
+        >
+          <pre
+            class="overflow-x-auto p-4"><code>{`import { RefreshCw } from 'lucide-react';
+import { defineFeature } from '../../lib/feature';
+import { AutoReloadPanel } from './Panel';
+
+export default defineFeature({
+  id: 'auto-reload',
+  name: 'Auto Reload',
+  description: 'Periodically refresh tabs at a chosen interval.',
+  icon: RefreshCw,
+  category: 'automation',
+  permissions: ['tabs', 'alarms', 'storage'],
+  Panel: AutoReloadPanel,
+});`}</code></pre>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-fg-default text-xl font-semibold">{copy.registry}</h2>
+        <p
+          class="mt-2"
+          set:html={copy.registryDesc.replaceAll(
+            /`([^`]+)`/g,
+            '<code class="bg-surface-muted rounded px-1.5 py-0.5 text-xs">$1</code>',
+          )}
+        />
+      </div>
+
+      <div>
+        <h2 class="text-fg-default text-xl font-semibold">{copy.background}</h2>
+        <p
+          class="mt-2"
+          set:html={copy.backgroundDesc.replaceAll(
+            /`([^`]+)`/g,
+            '<code class="bg-surface-muted rounded px-1.5 py-0.5 text-xs">$1</code>',
+          )}
+        />
+      </div>
+    </section>
+  </article>
+</BaseLayout>

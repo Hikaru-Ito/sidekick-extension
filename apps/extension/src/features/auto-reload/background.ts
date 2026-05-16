@@ -15,8 +15,8 @@ function parseTabIdFromAlarm(name: string): number | null {
 
 async function ensureAlarmForTab(tabId: number, seconds: number) {
   const safeSeconds = Math.max(seconds, MIN_INTERVAL_SECONDS);
-  // chrome.alarmsはperiodInMinutesが最小1分制約あり (MV3)。
-  // 1分未満は setTimeoutループで対応する。
+  // chrome.alarms enforces a 1-minute minimum on periodInMinutes (MV3).
+  // For sub-minute intervals we fall back to setTimeout loops.
   if (safeSeconds >= 60) {
     chrome.alarms.create(alarmName(tabId), {
       periodInMinutes: safeSeconds / 60,
@@ -58,7 +58,7 @@ async function reloadTab(tabId: number) {
       });
     }
   } catch (err) {
-    // タブが閉じられた等
+    // Tab is closed or otherwise unreachable; clean up state.
     await clearTabReload(tabId);
     chrome.alarms.clear(alarmName(tabId));
     const timer = shortIntervalTimers.get(tabId);
@@ -72,7 +72,7 @@ async function reloadTab(tabId: number) {
 async function reconcileAllAlarms() {
   const cfg = await readConfig();
   const allAlarms = await chrome.alarms.getAll();
-  // 既存alarmで設定にないものは削除
+  // Drop alarms for tabs that are no longer configured.
   for (const a of allAlarms) {
     const tabId = parseTabIdFromAlarm(a.name);
     if (tabId == null) continue;
@@ -80,14 +80,14 @@ async function reconcileAllAlarms() {
       chrome.alarms.clear(a.name);
     }
   }
-  // 短時間タイマーも掃除
+  // Same cleanup for in-process short-interval timers.
   for (const tabId of shortIntervalTimers.keys()) {
     if (!cfg.enabled || !cfg.tabs[tabId]) {
       clearTimeout(shortIntervalTimers.get(tabId));
       shortIntervalTimers.delete(tabId);
     }
   }
-  // 設定にあるものを起こす
+  // Schedule alarms for every tab still in the config.
   if (!cfg.enabled) return;
   for (const state of Object.values(cfg.tabs)) {
     const seconds = state.intervalSeconds ?? cfg.intervalSeconds;
@@ -115,6 +115,6 @@ export function registerAutoReloadBackground() {
     void reconcileAllAlarms();
   });
 
-  // 起動時に状態を復元
+  // Restore state on service-worker startup.
   void reconcileAllAlarms();
 }

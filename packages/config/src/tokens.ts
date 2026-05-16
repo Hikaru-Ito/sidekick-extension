@@ -1,12 +1,13 @@
 /**
- * Sidekick Design Tokens
+ * Sidekick design tokens.
  *
- * 設計思想: ニュートラルなzincベース + 単一アクセント (Iris / 紫青系)。
- * MobbinリサーチでFireflies/Whop/Origin/Xに共通する「シンプル × 柔らかい階層」を踏襲。
+ * Direction: a neutral zinc base with a single accent color (Iris, indigo-violet).
+ * Informed by a survey of modern productivity UIs (Fireflies, Whop, Origin, X)
+ * sharing a "simple grid with soft hierarchy" aesthetic.
  */
 
 export const colors = {
-  // Brand accent — Iris (青紫): productivity tool らしい知性 + 中立性
+  // Brand accent — Iris: an indigo-violet that reads as intelligent + neutral.
   iris: {
     50: '#eef1ff',
     100: '#e0e6ff',
@@ -20,7 +21,7 @@ export const colors = {
     900: '#312e81',
     950: '#1e1b4b',
   },
-  // Neutral palette — zinc を基調 (Tailwind zincと同等)
+  // Neutral palette — same scale as Tailwind's zinc.
   zinc: {
     50: '#fafafa',
     100: '#f4f4f5',

@@ -1,8 +1,14 @@
 # Contributing to Sidekick
 
-Sidekickへのコントリビューションをありがとうございます！このドキュメントは新機能の追加方法、コーディング規約、PRの送り方を説明します。
+Thanks for your interest in contributing to Sidekick! This document covers how to add features, the coding conventions, and how to submit pull requests.
 
-## 🚀 開発環境
+## 🌐 Language policy
+
+**All repository content must be in English**: commits, PR titles and descriptions, issue titles and bodies, code comments, console messages, error messages, and every file under `docs/`, `.github/`, and `README.md`.
+
+The landing page (`apps/landing/`) is bilingual (English default, Japanese alternate). End-user UI strings in the extension popup are currently Japanese-first; full i18n is planned.
+
+## 🚀 Development setup
 
 - Node.js 20.10+
 - pnpm 9+
@@ -11,37 +17,36 @@ Sidekickへのコントリビューションをありがとうございます！
 git clone https://github.com/Hikaru-Ito/sidekick-extension.git
 cd sidekick-extension
 pnpm install
-pnpm dev   # 拡張機能 + LP を並列起動
+pnpm dev   # runs the extension and landing in parallel
 ```
 
-## 🧩 新機能の追加 (重要)
+## 🧩 Adding a new feature
 
-Sidekickの設計思想は **「1機能 = 1ディレクトリ」** です。新機能はscaffolderで雛形を作成します:
+Sidekick's design principle: **one feature = one directory**. Scaffold a new feature with:
 
 ```bash
 pnpm gen:feature <feature-id>
-# 例
+# example
 pnpm gen:feature word-counter
 ```
 
-これで以下のファイルが自動生成されます:
+This creates:
 
 ```
 apps/extension/src/features/word-counter/
-├── manifest.ts     # 機能宣言 (defineFeature(...))
-├── Panel.tsx       # ポップアップで開かれるUI
-└── Summary.tsx     # ホーム画面のサマリ(任意)
+├── manifest.ts     # feature declaration (defineFeature(...))
+├── Panel.tsx       # UI rendered when the user opens the feature
+└── Summary.tsx     # (optional) summary shown on the home screen
 
-docs/features/word-counter.md  # ユーザー向け解説
-apps/landing/src/data/features.ts  # 自動で行が追加される (CLIが追記)
+docs/features/word-counter.md     # user-facing reference
+apps/landing/src/data/features.ts # (entry appended automatically)
 ```
 
-### 自動登録の仕組み
+### How auto-registration works
 
-`features/registry.ts` が `import.meta.glob('./*/manifest.ts')` で配下のすべてのmanifestを収集します。
-新機能ディレクトリを追加するだけでポップアップに自動的に表示されます。手動でのインポート不要。
+`features/registry.ts` collects every `manifest.ts` under `features/*/` via `import.meta.glob('./*/manifest.ts')`. Just adding a directory is enough; no manual imports needed.
 
-### Feature Manifest
+### Feature manifest shape
 
 ```ts
 import { Zap } from 'lucide-react';
@@ -50,8 +55,8 @@ import { MyFeaturePanel } from './Panel';
 
 export default defineFeature({
   id: 'my-feature',
-  name: '私の機能',
-  description: '1〜2文の説明',
+  name: 'My feature',
+  description: 'One or two sentences describing what it does.',
   icon: Zap,
   iconTone: 'iris',
   category: 'productivity',
@@ -60,42 +65,33 @@ export default defineFeature({
 });
 ```
 
-### Background処理が必要な場合
+### Background work
 
-```ts
-// features/my-feature/background.ts
-export function registerMyFeatureBackground() {
-  chrome.alarms.onAlarm.addListener(/* ... */);
-}
-
-// entrypoints/background.ts に追加
-import { registerMyFeatureBackground } from '../features/my-feature/background';
-registerMyFeatureBackground();
-```
+If a feature needs background processing (alarms, listeners, etc.), expose a `register<Feature>Background()` from `features/<id>/background.ts` and call it from `entrypoints/background.ts`.
 
 ### Storage
 
-`lib/storage.ts` の `featureStorage('<feature-id>')` を使ってください。キーが自動的にnamespace化されます。
+Use `featureStorage('<feature-id>')` from `lib/storage.ts`. Keys are automatically namespaced so different features can't clobber each other.
 
-## 🎨 UIガイドライン
+## 🎨 UI guidelines
 
-- スタイルは **Tailwind CSS** のみ。インラインCSSやstyled-componentsは使わない。
-- カラーは `bg-accent-500` のようにプリセットのトークンを使用。生のhexは禁止。
-- コンポーネントは `@sidekick/ui-kit` から優先的に取る。なければ追加するPRをお願いします。
-- アイコンは `lucide-react` から。
-- 動きは 120-240ms / `ease-out`。バウンス系は避ける。
+- Styling is Tailwind-only. No inline `style` blocks or styled-components.
+- Use tokens (`bg-accent-500`, `text-fg-muted`, etc.) — no raw hex.
+- Prefer components from `@sidekick/ui-kit`. If something is missing, add it there in the same PR.
+- Icons come from `lucide-react`.
+- Motion: 120-240ms with `ease-out`. Avoid bouncy easings inside the popup.
 
-## ✅ PR前のチェックリスト
+## ✅ PR checklist
 
-- [ ] `pnpm typecheck` 通過
-- [ ] `pnpm format:check` 通過
-- [ ] 機能追加時は `docs/features/<id>.md` を更新 (CLIで自動生成済み)
-- [ ] 機能追加時は `apps/landing/src/data/features.ts` に追記
-- [ ] `pnpm changeset` で変更点を記録
+- [ ] `pnpm typecheck` passes
+- [ ] `pnpm format:check` passes
+- [ ] When adding a feature: `docs/features/<id>.md` is filled in
+- [ ] When adding a feature: `apps/landing/src/data/features.ts` has the entry
+- [ ] `pnpm changeset` run to record the change
 
-## 📝 コミットメッセージ
+## 📝 Commit messages
 
-[Conventional Commits](https://www.conventionalcommits.org/) に従ってください:
+Follow [Conventional Commits](https://www.conventionalcommits.org/). All in English.
 
 ```
 feat(extension): add word counter feature
@@ -104,6 +100,6 @@ docs: update install instructions
 chore: bump dependencies
 ```
 
-## 💬 質問
+## 💬 Questions
 
-Issues や Discussions でお気軽にどうぞ。
+Open an issue or a discussion. We aim to reply within a few days.

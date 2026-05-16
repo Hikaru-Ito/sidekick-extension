@@ -1,6 +1,6 @@
 /**
- * Chrome storage.sync をPromiseでラップした薄いユーティリティ。
- * 各機能はnamespace付きでアクセスする (例: auto-reload.config)。
+ * Thin promise wrapper around `chrome.storage` (sync or local).
+ * Each feature accesses storage through a namespaced accessor (e.g. `auto-reload:config`).
  */
 
 type StorageArea = 'sync' | 'local';
@@ -48,7 +48,7 @@ export function onChange<T>(
   return () => chrome.storage.onChanged.removeListener(listener);
 }
 
-/** 機能ごとのnamespace付きアクセサを返す */
+/** Returns a namespaced accessor scoped to a single feature id. */
 export function featureStorage(featureId: string, area: StorageArea = 'sync') {
   const key = (suffix: string) => `feature:${featureId}:${suffix}`;
   return {

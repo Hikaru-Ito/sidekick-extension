@@ -1,4 +1,14 @@
 ---
+import { DEFAULT_LOCALE, type Locale } from '../i18n/types';
+import { localizePath } from '../i18n/utils';
+import { t } from '../i18n/ui';
+
+interface Props {
+  locale?: Locale;
+}
+
+const locale: Locale = Astro.props.locale ?? DEFAULT_LOCALE;
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
 const year = new Date().getFullYear();
 ---
 
@@ -6,21 +16,24 @@ const year = new Date().getFullYear();
   <div
     class="text-fg-muted mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6"
   >
-    <p>© {year} Sidekick contributors · MIT License</p>
+    <p>© {year} {t(locale, 'footer.tagline')}</p>
     <div class="flex gap-4">
       <a
         href="https://github.com/Hikaru-Ito/sidekick-extension"
         class="hover:text-fg-default"
         target="_blank"
-        rel="noopener noreferrer">GitHub</a
+        rel="noopener noreferrer">{t(locale, 'footer.github')}</a
       >
       <a
         href="https://github.com/Hikaru-Ito/sidekick-extension/issues"
         class="hover:text-fg-default"
         target="_blank"
-        rel="noopener noreferrer">Issues</a
+        rel="noopener noreferrer">{t(locale, 'footer.issues')}</a
       >
-      <a href="/docs/contributing" class="hover:text-fg-default">Contributing</a>
+      <a
+        href={`${baseUrl}${localizePath('/docs/contributing', locale)}`}
+        class="hover:text-fg-default">{t(locale, 'footer.contributing')}</a
+      >
     </div>
   </div>
 </footer>

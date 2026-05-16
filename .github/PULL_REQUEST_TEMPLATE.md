@@ -1,22 +1,22 @@
-<!-- まずは https://github.com/Hikaru-Ito/sidekick-extension/blob/main/CONTRIBUTING.md に目を通してください -->
+<!-- Please skim https://github.com/Hikaru-Ito/sidekick-extension/blob/main/CONTRIBUTING.md before opening a PR. -->
 
-## 概要
+## Summary
 
-<!-- 何をなぜ変えたか、1〜3行で -->
+<!-- 1–3 lines: what changed and why -->
 
-## 変更内容
+## Changes
 
 - [ ]
 - [ ]
 
-## チェックリスト
+## Checklist
 
-- [ ] `pnpm typecheck` 通過
-- [ ] `pnpm format:check` 通過
-- [ ] (機能追加時) `pnpm gen:feature <id>` で雛形作成 / docsとLP差分を更新
-- [ ] (UI変更時) スクリーンショットを添付
-- [ ] `pnpm changeset` で変更点を記録
+- [ ] `pnpm typecheck` passes
+- [ ] `pnpm format:check` passes
+- [ ] (Feature work) scaffolded with `pnpm gen:feature <id>` and `docs/features/<id>.md` + landing entry updated
+- [ ] (UI work) screenshots attached
+- [ ] `pnpm changeset` recorded
 
-## スクリーンショット (UI変更時)
+## Screenshots (for UI changes)
 
-<!-- before/after -->
+<!-- before / after -->

@@ -1,9 +1,9 @@
 export interface AutoReloadConfig {
-  /** 全体ON/OFF */
+  /** Master on/off switch. */
   enabled: boolean;
-  /** リロード間隔 (秒) */
+  /** Default reload interval (seconds) when a tab doesn't set its own. */
   intervalSeconds: number;
-  /** タブごとの設定 (tabIdをキーに) */
+  /** Per-tab state, keyed by tabId. */
   tabs: Record<number, TabReloadState>;
 }
 
@@ -11,11 +11,11 @@ export interface TabReloadState {
   tabId: number;
   url: string;
   title: string;
-  /** このタブのリロード間隔 (秒) — 未指定なら global を使う */
+  /** Tab-specific interval (seconds); falls back to the global value if unset. */
   intervalSeconds?: number;
-  /** いつ開始したか (epoch ms) */
+  /** When this tab's auto-reload was first enabled (epoch ms). */
   startedAt: number;
-  /** 次のリロード予定時刻 (epoch ms) */
+  /** Scheduled time for the next reload (epoch ms). */
   nextReloadAt: number;
 }
 
@@ -25,7 +25,7 @@ export const DEFAULT_AUTO_RELOAD_CONFIG: AutoReloadConfig = {
   tabs: {},
 };
 
-/** プリセット間隔 (秒) */
+/** Preset intervals (seconds). Labels are displayed to the user in Japanese for now. */
 export const RELOAD_PRESETS: { label: string; seconds: number }[] = [
   { label: '15秒', seconds: 15 },
   { label: '30秒', seconds: 30 },
@@ -38,7 +38,7 @@ export const RELOAD_PRESETS: { label: string; seconds: number }[] = [
 ];
 
 export const MIN_INTERVAL_SECONDS = 5;
-export const MAX_INTERVAL_SECONDS = 86_400; // 24h
+export const MAX_INTERVAL_SECONDS = 86_400; // 24 hours
 
 export function formatInterval(seconds: number): string {
   if (seconds < 60) return `${seconds}秒`;

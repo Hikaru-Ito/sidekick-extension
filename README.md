@@ -1,99 +1,103 @@
 # Sidekick Extension
 
-> 毎日のブラウザに、頼れる相棒を。
+> Your everyday browser sidekick.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Built with WXT](https://img.shields.io/badge/built%20with-WXT-7c3aed)](https://wxt.dev/)
 [![Built with Astro](https://img.shields.io/badge/built%20with-Astro-ff5d01)](https://astro.build/)
 
-**Sidekick** はオープンソースのChrome拡張機能です。便利機能を一つの拡張にまとめ、単機能拡張を何個も入れる代わりにSidekick一つで生産性を底上げします。
+**Sidekick** is an open-source Chrome extension that bundles many small productivity utilities into a single, modular extension. Instead of installing a dozen single-purpose extensions, install one Sidekick and pick the features you need.
 
-## ✨ 機能
+## ✨ Features
 
-| 機能               | カテゴリ     | 状態    |
-| ------------------ | ------------ | ------- |
-| 定期リロード       | Automation   | Stable  |
-| タブサスペンダー   | Productivity | Planned |
-| スクリーンショット | Productivity | Planned |
-| カラーピッカー     | Developer    | Planned |
-| JSONビューア       | Developer    | Planned |
+| Feature       | Category     | Status  |
+| ------------- | ------------ | ------- |
+| Auto Reload   | Automation   | Stable  |
+| Tab Suspender | Productivity | Planned |
+| Screenshot    | Productivity | Planned |
+| Color Picker  | Developer    | Planned |
+| JSON Viewer   | Developer    | Planned |
 
-詳細は [LP](https://hikaru-ito.github.io/sidekick-extension) または [docs/features/](./docs/features/) を参照。
+See the [landing page](https://hikaru-ito.github.io/sidekick-extension/) or [docs/features/](./docs/features/) for details.
 
-## 🚀 クイックスタート
+## 🚀 Quick start
 
-### ユーザー
+### For users
 
-[インストール手順](https://hikaru-ito.github.io/sidekick-extension/install) を参照してください。
+See the [install guide](https://hikaru-ito.github.io/sidekick-extension/install).
 
-### 開発者
+### For developers
 
 ```bash
 git clone https://github.com/Hikaru-Ito/sidekick-extension.git
 cd sidekick-extension
 pnpm install
-pnpm dev          # 拡張機能 + LP 並列起動
+pnpm dev          # runs the extension and landing in parallel
 ```
 
-拡張機能のみ:
+Extension only:
 
 ```bash
 pnpm --filter @sidekick/extension dev
 ```
 
-ビルド成果物 (`.output/chrome-mv3/`) を Chrome の `chrome://extensions` から「パッケージ化されていない拡張機能を読み込む」で読み込めます。
+Load the build output (`apps/extension/.output/chrome-mv3/`) into Chrome via `chrome://extensions` → "Load unpacked".
 
-## 📁 リポジトリ構成
+## 📁 Repository layout
 
 ```
 sidekick-extension/
 ├── apps/
-│   ├── extension/      # WXT-based Chrome MV3 拡張機能
-│   └── landing/        # Astro製LP + docs
+│   ├── extension/      # Chrome MV3 extension (WXT + React)
+│   └── landing/        # Landing page + docs (Astro, bilingual en/ja)
 ├── packages/
-│   ├── ui-kit/         # 共有Reactコンポーネント (Tailwind)
-│   ├── config/         # デザイントークン + Tailwindプリセット
-│   └── tsconfig/       # 共有tsconfig
-├── docs/               # マークダウン仕様書
-└── scripts/            # 機能scaffolder等
+│   ├── ui-kit/         # Shared React components (Tailwind)
+│   ├── config/         # Design tokens + Tailwind preset
+│   └── tsconfig/       # Shared tsconfig
+├── docs/               # Markdown reference docs
+└── scripts/            # Feature scaffolder etc.
 ```
 
-## 🧩 機能を追加する
+## 🧩 Adding a feature
 
 ```bash
 pnpm gen:feature word-counter
 ```
 
-これだけで以下が生成され、自動的にポップアップに登録されます:
+This single command creates:
 
 - `apps/extension/src/features/word-counter/manifest.ts`
 - `apps/extension/src/features/word-counter/Panel.tsx`
 - `docs/features/word-counter.md`
+- An entry in `apps/landing/src/data/features.ts`
 
-詳細は [CONTRIBUTING.md](./CONTRIBUTING.md) を参照。
+The new feature is auto-registered in the popup menu via Vite's `import.meta.glob`. See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
-## 🎨 デザインシステム
+## 🎨 Design system
 
-ニュートラルzincベース + 単一アクセント (Iris) のミニマルなデザインシステム。
-詳しくは [docs/design-system.md](./docs/design-system.md) または [LP のデザインシステムページ](https://hikaru-ito.github.io/sidekick-extension/docs/design-system) を参照。
+Neutral zinc base + a single accent color (Iris). See [docs/design-system.md](./docs/design-system.md) or the [design system page](https://hikaru-ito.github.io/sidekick-extension/docs/design-system) for tokens and component documentation.
 
-## 🛠️ 技術スタック
+## 🛠️ Tech stack
 
 - **Monorepo**: pnpm workspaces + Turborepo
 - **Extension**: WXT (Manifest V3) + React 18 + TypeScript
-- **Landing**: Astro 4 + React (islands) + MDX
+- **Landing**: Astro 4 + React islands + MDX (bilingual en/ja)
 - **Styles**: Tailwind CSS + shared preset
 - **UI primitives**: Radix UI + class-variance-authority
 - **Icons**: lucide-react
 
-## 🤝 コントリビューション
+## 🌐 Language policy
 
-PRを歓迎します！[CONTRIBUTING.md](./CONTRIBUTING.md) を読んでから始めてください。
+All repository content — commits, PRs, issues, code comments, docs — is written in **English**. The landing page is bilingual (English default, Japanese available). The extension popup UI is currently Japanese-first; English support is planned.
 
-## 📄 ライセンス
+## 🤝 Contributing
+
+PRs welcome. Read [CONTRIBUTING.md](./CONTRIBUTING.md) first.
+
+## 📄 License
 
 [MIT](./LICENSE)
 
 ---
 
-Sidekick は [STRACT, Inc.](https://stract.co.jp) が後援するOSSプロジェクトです。
+Sidekick is an OSS project maintained by [Hikaru Ito](https://github.com/Hikaru-Ito).

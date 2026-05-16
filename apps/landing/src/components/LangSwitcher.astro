@@ -1,0 +1,35 @@
+---
+import { LOCALES, localeMeta, type Locale } from '../i18n/types';
+import { unlocalizePath, localizePath } from '../i18n/utils';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
+const rawPath = Astro.url.pathname.replace(baseUrl, '') || '/';
+const sourcePath = unlocalizePath(rawPath, locale);
+---
+
+<div class="border-border bg-surface-elevated flex items-center gap-0.5 rounded-md border p-0.5">
+  {
+    LOCALES.map((target) => {
+      const href = baseUrl + localizePath(sourcePath, target);
+      const isActive = target === locale;
+      return (
+        <a
+          href={href}
+          hreflang={localeMeta[target].htmlLang}
+          aria-current={isActive ? 'page' : undefined}
+          class:list={[
+            'rounded px-2 py-1 text-xs font-medium transition-colors',
+            isActive ? 'bg-surface-muted text-fg-default' : 'text-fg-muted hover:text-fg-default',
+          ]}
+        >
+          {target.toUpperCase()}
+        </a>
+      );
+    })
+  }
+</div>

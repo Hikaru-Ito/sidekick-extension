@@ -1,13 +1,13 @@
 # Changesets
 
-このディレクトリは [changesets](https://github.com/changesets/changesets) が変更ログを管理する場所です。
+This directory is managed by [changesets](https://github.com/changesets/changesets) to track release notes.
 
-## 使い方
+## Usage
 
 ```bash
-pnpm changeset       # 新しい変更を記録
-pnpm version         # changesets をバージョンとCHANGELOGに変換
-pnpm release         # ビルド + 公開
+pnpm changeset       # record a new change
+pnpm version         # apply pending changesets to versions and CHANGELOGs
+pnpm release         # build + publish
 ```
 
-詳しくは: https://github.com/changesets/changesets/blob/main/docs/intro-to-using-changesets.md
+More info: https://github.com/changesets/changesets/blob/main/docs/intro-to-using-changesets.md

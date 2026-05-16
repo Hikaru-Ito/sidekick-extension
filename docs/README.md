@@ -1,20 +1,19 @@
 # Sidekick Documentation
 
-Sidekickの公式ドキュメント。LP上では [hikaru-ito.github.io/sidekick-extension/docs](https://hikaru-ito.github.io/sidekick-extension/docs) として配信されます。
+Reference documentation for Sidekick. These markdown files are also rendered on the landing site at [hikaru-ito.github.io/sidekick-extension/docs](https://hikaru-ito.github.io/sidekick-extension/docs).
 
-## 構成
+## Layout
 
 ```
 docs/
-├── README.md              # このファイル
-├── architecture.md        # システム設計
-├── design-system.md       # デザイントークン/コンポーネント
-├── contributing.md        # コントリビュータ向け (CONTRIBUTING.md の詳細版)
-└── features/              # 各機能のリファレンス
-    └── <feature-id>.md    # pnpm gen:feature で自動生成
+├── README.md              # this file
+├── architecture.md        # system design
+├── design-system.md       # tokens and components
+├── contributing.md        # contributor guide (extended version of /CONTRIBUTING.md)
+└── features/              # per-feature reference
+    └── <feature-id>.md    # auto-scaffolded by `pnpm gen:feature`
 ```
 
-## 機能ドキュメントの追加
+## Adding feature docs
 
-新機能を `pnpm gen:feature <id>` で作成すると `docs/features/<id>.md` の雛形が自動生成されます。
-このファイルを編集してリリースしてください。
+`pnpm gen:feature <id>` scaffolds a starter `docs/features/<id>.md`. Fill it in before releasing the feature.

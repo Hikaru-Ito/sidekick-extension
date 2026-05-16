@@ -1,0 +1,15 @@
+---
+import DocsFeaturePage from '../../../../sections/DocsFeaturePage.astro';
+import { features, plannedFeatures, localize } from '../../../../data/features';
+
+export function getStaticPaths() {
+  return [...features, ...plannedFeatures].map((feature) => ({
+    params: { id: feature.id },
+    props: { feature: localize(feature, 'ja') },
+  }));
+}
+
+const { feature } = Astro.props;
+---
+
+<DocsFeaturePage locale="ja" feature={feature} />

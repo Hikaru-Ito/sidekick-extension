@@ -1,50 +1,50 @@
-# 定期リロード (auto-reload)
+# Auto Reload
 
-> 指定した間隔で開いているタブを自動リロードします。
+> Periodically refresh open tabs at a chosen interval.
 
-## 概要
+## Overview
 
-ダッシュボード監視、ライブビュー、ステータスページの自動更新などに便利な機能です。タブごとに個別の間隔を設定でき、バックグラウンドservice workerで省リソースに動作します。
+Useful for monitoring dashboards, live status pages, or any tab whose content changes on a regular cadence. Configure per-tab intervals; reloads run from the background service worker so they keep working when the popup is closed.
 
-## 使い方
+## How to use
 
-1. ツールバーのSidekickアイコンをクリック
-2. ホーム画面の「Automation」セクションから **定期リロード** を選択
-3. プリセット (15秒〜1時間) またはカスタムで秒数を指定
-4. トグルをONにすると現在のタブが自動でリロードされ始める
-5. 他のタブの状態は下の「他のタブ」セクションから確認・停止可能
+1. Click the Sidekick icon in the toolbar.
+2. Pick **Auto Reload** under the Automation section.
+3. Choose a preset (15 s – 1 h) or enter a custom number of seconds.
+4. Toggle on. The active tab starts auto-reloading.
+5. The "Other tabs" section lists tabs reloading in the background; stop any of them with the × button.
 
-## 設定
+## Settings
 
-### プリセット間隔
+### Presets
 
-| ラベル | 秒数 |
-| ------ | ---- |
-| 15秒   | 15   |
-| 30秒   | 30   |
-| 1分    | 60   |
-| 3分    | 180  |
-| 5分    | 300  |
-| 10分   | 600  |
-| 30分   | 1800 |
-| 1時間  | 3600 |
+| Label  | Seconds |
+| ------ | ------- |
+| 15 sec | 15      |
+| 30 sec | 30      |
+| 1 min  | 60      |
+| 3 min  | 180     |
+| 5 min  | 300     |
+| 10 min | 600     |
+| 30 min | 1800    |
+| 1 hour | 3600    |
 
-### カスタム間隔
+### Custom
 
-`5秒 〜 86,400秒 (24時間)` の範囲で任意の秒数を指定可能。
+Any value from `5` seconds to `86_400` seconds (24 hours).
 
-## 技術的な詳細
+## Implementation notes
 
-| 項目           | 内容                                                       |
-| -------------- | ---------------------------------------------------------- |
-| カテゴリ       | automation                                                 |
-| Permissions    | `tabs`, `alarms`, `storage`                                |
-| ストレージ     | `chrome.storage.local` (`feature:auto-reload:config` キー) |
-| 1分以上の間隔  | `chrome.alarms` で実行 (省リソース)                        |
-| 1分未満の間隔  | service worker内の `setTimeout` で実行                     |
-| クリーンアップ | タブが閉じられたら自動で設定削除                           |
+| Field        | Value                                                     |
+| ------------ | --------------------------------------------------------- |
+| Category     | automation                                                |
+| Permissions  | `tabs`, `alarms`, `storage`                               |
+| Storage area | `chrome.storage.local` (key `feature:auto-reload:config`) |
+| ≥ 1 min      | Scheduled via `chrome.alarms` (efficient)                 |
+| < 1 min      | Scheduled via `setTimeout` in the service worker          |
+| Tab close    | State is cleaned up automatically                         |
 
-### データモデル
+### Data model
 
 ```ts
 interface AutoReloadConfig {
@@ -63,7 +63,7 @@ interface TabReloadState {
 }
 ```
 
-## 関連
+## See also
 
-- ソース: `apps/extension/src/features/auto-reload/`
-- LP: https://hikaru-ito.github.io/sidekick-extension/docs/features/auto-reload
+- Source: `apps/extension/src/features/auto-reload/`
+- Landing page: https://hikaru-ito.github.io/sidekick-extension/docs/features/auto-reload

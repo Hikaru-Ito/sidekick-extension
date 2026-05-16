@@ -1,21 +1,21 @@
 # Security Policy
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-セキュリティに関する問題を発見した場合、公開のissueは作成せず、以下までメールでご連絡ください:
+If you discover a security issue, **do not open a public issue**. Please email:
 
 **hikaru@stract.co.jp**
 
-48時間以内に確認の返信をします。詳細・再現手順・影響範囲を含めていただけると助かります。
+We aim to acknowledge reports within 48 hours. Include reproduction steps, affected versions, and impact assessment if you can.
 
-## Scope
+## In scope
 
-- ChromeのMV3 sandboxを超えた特権処理
-- ユーザーデータの外部送信
-- 拡張機能起因のXSS / CSRF
-- 認証情報・トークンの漏洩
+- Privileged operations that escape the Chrome MV3 sandbox
+- User data exfiltration
+- Cross-site scripting / CSRF originating from the extension
+- Credential or token leakage
 
-## Out of Scope
+## Out of scope
 
-- Chrome本体やWeb標準のバグ
-- ベストプラクティスではない設定 (ただし合理的な提案は歓迎)
+- Bugs in Chrome itself or web standards
+- Configuration suggestions that are not best-practice (constructive feedback still welcome)

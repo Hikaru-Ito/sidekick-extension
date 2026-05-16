@@ -1,25 +1,25 @@
-name: 機能リクエスト
-description: 新しい機能を提案する
+name: Feature request
+description: Suggest a new feature
 labels: [enhancement]
 body:
   - type: textarea
     id: motivation
     attributes:
-      label: なぜこの機能が必要か
-      description: 解決したい課題や利用シーンを書いてください
+      label: Why is this needed
+      description: Describe the problem you're trying to solve or the use case.
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: 提案する解決方法
-      description: どのように動くか、UIの想定なども含めて
+      label: Proposed solution
+      description: How would it work? UI sketches and behaviour are helpful.
     validations:
       required: true
   - type: dropdown
     id: category
     attributes:
-      label: カテゴリ
+      label: Category
       options:
         - productivity
         - automation
@@ -29,4 +29,4 @@ body:
   - type: textarea
     id: alternatives
     attributes:
-      label: 検討した代替案
+      label: Alternatives considered

@@ -1,32 +1,33 @@
 import type { ComponentType, ReactNode } from 'react';
 
 /**
- * FeatureManifest — Sidekickの各機能はこの形で宣言される。
- * registry.ts が import.meta.glob で自動読込し、ポップアップに表示される。
- * 新機能追加時は scripts/scaffold-feature.mjs を使うとこの雛形が自動生成される。
+ * FeatureManifest — each Sidekick feature default-exports an object of this shape.
+ * `registry.ts` collects every manifest via `import.meta.glob`, so adding a new
+ * feature directory is enough to register it in the popup.
+ * Use `pnpm gen:feature <id>` to scaffold the boilerplate.
  */
 export interface FeatureManifest {
-  /** kebab-case ID. ストレージキー prefix にもなる */
+  /** kebab-case id, also used as a storage-key prefix. */
   id: string;
-  /** UI表示名 */
+  /** Display name shown in the popup. */
   name: string;
-  /** 1〜2文の機能説明 */
+  /** Short (1–2 sentence) description. */
   description: string;
-  /** lucide-reactのアイコンコンポーネント */
+  /** lucide-react icon component. */
   icon: ComponentType<{ className?: string }>;
-  /** アイコンの色調 */
+  /** Tone applied to the icon tile. */
   iconTone?: 'iris' | 'success' | 'warning' | 'danger' | 'info' | 'neutral';
-  /** メニューカテゴリ */
+  /** Menu category. */
   category: 'productivity' | 'automation' | 'developer' | 'privacy' | 'lifestyle';
-  /** Chromeのpermissions (manifest.jsonにマージされる前提) */
+  /** Chrome permissions (informational; merged into the global manifest). */
   permissions?: chrome.runtime.ManifestPermissions[];
-  /** ポップアップで開かれるパネル本体 */
+  /** Panel rendered when the user opens this feature. */
   Panel: ComponentType;
-  /** 一覧で右側に出すサマリ (例: "30s毎にリロード中") */
+  /** Optional summary shown next to the feature in the home list. */
   Summary?: ComponentType;
-  /** 機能の有効/無効を制御する場合のキー (デフォルトはid) */
+  /** Storage key for the enable/disable flag (defaults to `id`). */
   enabledKey?: string;
-  /** ステータスバッジ (NEW, BETAなど) */
+  /** Status badge (e.g. "NEW", "BETA"). */
   badge?: ReactNode;
 }
 

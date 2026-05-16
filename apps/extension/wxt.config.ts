@@ -4,7 +4,7 @@ export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   srcDir: 'src',
   outDir: '.output',
-  // publicDir は srcDir 相対なので、 apps/extension/public を指す
+  // publicDir is resolved relative to srcDir, so '../public' = apps/extension/public.
   publicDir: '../public',
   manifest: {
     name: 'Sidekick',

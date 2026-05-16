@@ -1,87 +1,15 @@
 ---
-import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { features } from '../../../data/features';
+import DocsFeaturePage from '../../../sections/DocsFeaturePage.astro';
+import { features, plannedFeatures, localize } from '../../../data/features';
 
 export function getStaticPaths() {
-  return features.map((feature) => ({
+  return [...features, ...plannedFeatures].map((feature) => ({
     params: { id: feature.id },
-    props: { feature },
+    props: { feature: localize(feature, 'en') },
   }));
 }
 
 const { feature } = Astro.props;
 ---
 
-<BaseLayout title={`${feature.name} | Sidekick docs`} description={feature.description}>
-  <article class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-    <a href="/docs" class="text-fg-muted hover:text-fg-default text-sm">&larr; ドキュメントへ戻る</a
-    >
-    <header class="mt-4">
-      <div class="flex items-center gap-3">
-        <span
-          class="bg-accent-500/12 text-accent-700 dark:text-accent-300 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
-          >{feature.category}</span
-        >
-        <span
-          class="bg-success/12 text-success rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
-          >{feature.status}</span
-        >
-      </div>
-      <h1 class="mt-4 text-4xl font-semibold tracking-tight">{feature.name}</h1>
-      <p class="text-fg-muted mt-3">{feature.description}</p>
-    </header>
-
-    <section class="prose prose-zinc dark:prose-invert mt-10 max-w-none">
-      <h2 class="text-lg font-semibold">主な特徴</h2>
-      <ul class="text-fg-muted mt-3 space-y-2 text-sm">
-        {
-          feature.highlights.map((h) => (
-            <li class="flex items-start gap-2">
-              <span class="bg-accent-500 mt-1.5 h-1 w-1 shrink-0 rounded-full" />
-              <span>{h}</span>
-            </li>
-          ))
-        }
-      </ul>
-
-      {
-        feature.id === 'auto-reload' && (
-          <div class="mt-8 space-y-6">
-            <div>
-              <h2 class="text-lg font-semibold">使い方</h2>
-              <ol class="text-fg-muted mt-3 space-y-3 text-sm">
-                <li>1. ツールバーのSidekickアイコンをクリック</li>
-                <li>2. メニューから「定期リロード」を選択</li>
-                <li>3. プリセット (15秒〜1時間) またはカスタム秒数を指定</li>
-                <li>4. トグルをONにすると現在のタブが自動でリロードされ始める</li>
-              </ol>
-            </div>
-            <div>
-              <h2 class="text-lg font-semibold">技術的な詳細</h2>
-              <ul class="text-fg-muted mt-3 space-y-2 text-sm">
-                <li>
-                  1分以上の間隔は{' '}
-                  <code class="bg-surface-muted rounded px-1.5 py-0.5 text-xs">chrome.alarms</code>{' '}
-                  で省リソース実行
-                </li>
-                <li>
-                  1分未満は service worker 内の{' '}
-                  <code class="bg-surface-muted rounded px-1.5 py-0.5 text-xs">setTimeout</code>{' '}
-                  で実行
-                </li>
-                <li>
-                  設定は{' '}
-                  <code class="bg-surface-muted rounded px-1.5 py-0.5 text-xs">
-                    chrome.storage.local
-                  </code>{' '}
-                  に保存。タブごとに管理
-                </li>
-                <li>タブが閉じられると自動でクリーンアップ</li>
-              </ul>
-            </div>
-          </div>
-        )
-      }
-    </section>
-  </article>
-</BaseLayout>
+<DocsFeaturePage locale="en" feature={feature} />

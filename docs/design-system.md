@@ -1,112 +1,112 @@
 # Design System
 
-Sidekickのデザインシステム。Mobbinリサーチに基づくニュートラル + シングルアクセント構成。
+Sidekick's design system. A neutral base with a single accent color, informed by research on modern productivity-tool UIs.
 
-## 設計原則
+## Principles
 
-1. **ニュートラル > 装飾** — 機能を邪魔しない。アクセントは1色のみ
-2. **密度の階層** — アイコンタイル(36px) + 14pxタイトル + 12px説明 で視線誘導
-3. **動きは控えめに** — 120-240ms / `ease-out`。ポップアップ内ではバウンスを使わない
-4. **アクセシビリティ** — contrast 4.5:1以上、focus-visible のリング必須
-5. **ダーク/ライト両対応** — CSS変数(--sk-\*)経由でセマンティック切替
+1. **Neutral over decorative** — Don't fight the content. Accent is a single color.
+2. **Visual hierarchy through density** — Icon tile (36px) + 14px title + 12px description guides the eye.
+3. **Restrained motion** — 120-240ms with `ease-out`. No bouncy easings inside the popup.
+4. **Accessibility** — Contrast ≥4.5:1, `focus-visible` rings everywhere.
+5. **Light & dark** — All surfaces use CSS variables (`--sk-*`) and switch with the `dark` class / `[data-theme]`.
 
-## カラー
+## Colors
 
-### Accent — Iris (#6366f1)
+### Accent — Iris (`#6366f1`)
 
-Productivity tool らしい知性 + 中立性を表す青紫系。`accent-50` 〜 `accent-950` (Tailwindプリセット経由)。
+An indigo-violet that reads as both intelligent and neutral. Tailwind exposes it as `accent-50` through `accent-950`.
 
 ### Neutral — Zinc
 
-Tailwind zinc と同等。`neutral-50` 〜 `neutral-950`。
+Matches Tailwind's `zinc-50` through `zinc-950`.
 
 ### Semantic
 
-| Token     | 用途         | Color     |
-| --------- | ------------ | --------- |
-| `success` | 成功・実行中 | `#10b981` |
-| `warning` | 注意・警告   | `#f59e0b` |
-| `danger`  | 削除・停止   | `#ef4444` |
-| `info`    | 通知・情報   | `#06b6d4` |
+| Token     | Use                       | Color     |
+| --------- | ------------------------- | --------- |
+| `success` | Success, running state    | `#10b981` |
+| `warning` | Caution                   | `#f59e0b` |
+| `danger`  | Delete, stop, destructive | `#ef4444` |
+| `info`    | Informational             | `#06b6d4` |
 
-### CSS Variables (Surface)
+### Surface CSS variables
 
-ライト/ダークの自動切替のため、surface系はCSS変数で扱う:
+To enable automatic light/dark switching, surface tokens are CSS variables:
 
-| Variable                | 用途                     |
-| ----------------------- | ------------------------ |
-| `--sk-surface`          | ベース背景               |
-| `--sk-surface-muted`    | サブ背景 (リストhover等) |
-| `--sk-surface-elevated` | カード/ポップオーバー    |
-| `--sk-border`           | デフォルト境界線         |
-| `--sk-border-strong`    | 強調境界線               |
-| `--sk-fg-default`       | テキスト                 |
-| `--sk-fg-muted`         | サブテキスト             |
-| `--sk-fg-subtle`        | ヒント・ラベル           |
+| Variable                | Purpose                       |
+| ----------------------- | ----------------------------- |
+| `--sk-surface`          | Base background               |
+| `--sk-surface-muted`    | Hover row, subdued background |
+| `--sk-surface-elevated` | Cards, popovers               |
+| `--sk-border`           | Default border                |
+| `--sk-border-strong`    | Strong border                 |
+| `--sk-fg-default`       | Primary text                  |
+| `--sk-fg-muted`         | Secondary text                |
+| `--sk-fg-subtle`        | Hints, labels                 |
 
-Tailwindでは `bg-surface`, `bg-surface-muted`, `text-fg-default` のように使用。
+In Tailwind you write `bg-surface`, `bg-surface-muted`, `text-fg-default`, etc.
 
-## タイポグラフィ
+## Typography
 
-- **ファミリ**: Inter Variable (rsms.me/inter からCDN取得)
-- **モノスペース**: JetBrains Mono / Fira Code
-- **font-feature-settings**: `cv11`, `ss01`, `ss03` (Interの改良グリフ)
+- **Sans**: Inter Variable (loaded from rsms.me/inter CDN)
+- **Mono**: JetBrains Mono → Fira Code → system mono
+- **font-feature-settings**: `cv11`, `ss01`, `ss03` (Inter's modern glyph variants)
 
-スケール: `xs`(11) / `sm`(13) / `base`(14) / `md`(15) / `lg`(16) / `xl`(18) / `2xl`(22) / `3xl`(28) / `4xl`(36) / `5xl`(48) / `6xl`(60)
+Scale: `xs`(11) / `sm`(13) / `base`(14) / `md`(15) / `lg`(16) / `xl`(18) / `2xl`(22) / `3xl`(28) / `4xl`(36) / `5xl`(48) / `6xl`(60)
 
-## 角丸
+## Border radius
 
-| Token  | Value  | 用途                       |
-| ------ | ------ | -------------------------- |
-| `sm`   | 4px    | 小さなインジケータ         |
-| `md`   | 8px    | ボタン・インプット・チップ |
-| `lg`   | 12px   | カード                     |
-| `xl`   | 16px   | モーダル                   |
-| `2xl`  | 20px   | ヒーロー要素               |
-| `full` | 9999px | トグル・アバター           |
+| Token  | Value  | Use                      |
+| ------ | ------ | ------------------------ |
+| `sm`   | 4px    | Small indicators         |
+| `md`   | 8px    | Buttons, inputs, chips   |
+| `lg`   | 12px   | Cards                    |
+| `xl`   | 16px   | Modals                   |
+| `2xl`  | 20px   | Hero elements            |
+| `full` | 9999px | Switches, avatars, pills |
 
-## シャドウ
+## Shadows
 
-| Token      | 用途                                      |
-| ---------- | ----------------------------------------- |
-| `xs`       | カード(デフォルト)                        |
-| `sm`       | ボタン                                    |
-| `md`       | ホバー時のカード                          |
-| `lg`       | ドロップダウン                            |
-| `xl`/`2xl` | モーダル                                  |
-| `glow`     | フォーカス・アクセント (4px iris-500 12%) |
+| Token      | Use                                      |
+| ---------- | ---------------------------------------- |
+| `xs`       | Default card                             |
+| `sm`       | Buttons                                  |
+| `md`       | Card on hover                            |
+| `lg`       | Dropdowns                                |
+| `xl`/`2xl` | Modals                                   |
+| `glow`     | Focus / accent ring (4px iris-500 @ 12%) |
 
-## コンポーネント
+## Components
 
-`@sidekick/ui-kit` から提供:
+Provided by `@sidekick/ui-kit`:
 
-- `Button` — primary / secondary / ghost / danger / link, sm / md / lg / icon
-- `IconButton` — アイコンのみのボタン
-- `Switch` — iOS風トグル (22x36)
-- `Slider` — 単一値スライダー
-- `Select` — Radix UIベース
-- `Input` — テキスト入力
+- `Button` — `primary` / `secondary` / `ghost` / `danger` / `link`, sizes `sm` / `md` / `lg` / `icon`
+- `IconButton` — icon-only button with label tooltip
+- `Switch` — iOS-style toggle (22×36)
+- `Slider` — single-value Radix slider
+- `Select` — Radix-based select
+- `Input` — single-line text input
 - `Card` / `CardHeader` / `CardTitle` / `CardDescription` / `CardContent`
-- `ListItem` — アイコン+タイトル+説明+トレーリング+chevron
-- `Badge` — iris / neutral / success / warning / danger
-- `SectionHeader` — 機能カテゴリ等の小見出し
+- `ListItem` — icon + title + description + trailing slot + chevron
+- `Badge` — `iris` / `neutral` / `success` / `warning` / `danger`
+- `SectionHeader` — small uppercase header for grouped lists
 
-## モーション
+## Motion
 
-| Token  | Value | 用途          |
+| Token  | Value | Use           |
 | ------ | ----- | ------------- |
-| `fast` | 120ms | hover, fade   |
-| `base` | 200ms | toggle, slide |
-| `slow` | 320ms | modal         |
+| `fast` | 120ms | Hover, fade   |
+| `base` | 200ms | Toggle, slide |
+| `slow` | 320ms | Modal         |
 
-Easing: `out` = `cubic-bezier(0.16, 1, 0.3, 1)` をデフォルトに。
+Easing: `out` = `cubic-bezier(0.16, 1, 0.3, 1)` is the default.
 
-Animation:
+Predefined animations:
 
-- `animate-fade-in` — 0 → 1 (200ms)
-- `animate-fade-in-up` — 4px下から (240ms)
-- `animate-shimmer` — スケルトン用
+- `animate-fade-in` — opacity 0 → 1 over 200ms
+- `animate-fade-in-up` — 4px from below with fade, 240ms
+- `animate-shimmer` — skeleton placeholder
 
-## ポップアップサイズ
+## Popup dimensions
 
-`width: 380px, max-height: 600px` — Chromeのツールバーポップアップ標準幅。
+`width: 380px, max-height: 600px` — matches the Chrome toolbar popup convention.

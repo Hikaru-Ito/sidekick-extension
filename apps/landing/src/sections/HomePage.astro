@@ -1,0 +1,309 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { features, plannedFeatures, localize, type LandingFeatureCategory } from '../data/features';
+import { t } from '../i18n/ui';
+import { localizePath } from '../i18n/utils';
+import type { Locale } from '../i18n/types';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const stableFeatures = features.map((f) => localize(f, locale));
+const plannedLocalized = plannedFeatures.map((f) => localize(f, locale));
+
+const categoryColors: Record<LandingFeatureCategory, string> = {
+  automation: 'bg-accent-500/12 text-accent-600',
+  productivity: 'bg-success/12 text-success',
+  developer: 'bg-info/12 text-info',
+  privacy: 'bg-warning/15 text-warning',
+  lifestyle: 'bg-danger/12 text-danger',
+};
+---
+
+<BaseLayout locale={locale}>
+  <!-- Hero -->
+  <section class="relative overflow-hidden">
+    <div class="bg-grid absolute inset-0 -z-10"></div>
+    <div class="mx-auto max-w-6xl px-4 pb-20 pt-20 sm:px-6 sm:pt-28">
+      <div class="mx-auto max-w-3xl text-center">
+        <span
+          class="border-border bg-surface-elevated text-fg-muted shadow-xs inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium"
+        >
+          <span class="bg-success h-1.5 w-1.5 rounded-full"></span>
+          {t(locale, 'hero.badge')}
+        </span>
+        <h1
+          class="text-fg-default mt-6 text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl"
+        >
+          {t(locale, 'hero.titleLine1')}<br />
+          <span
+            class="from-accent-500 via-accent-600 to-accent-800 bg-gradient-to-r bg-clip-text text-transparent"
+          >
+            {t(locale, 'hero.titleLine2Accent')}
+          </span>
+        </h1>
+        <p class="text-fg-muted mx-auto mt-6 max-w-2xl text-base leading-relaxed sm:text-lg">
+          {t(locale, 'hero.description')}
+        </p>
+        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a
+            href={`${baseUrl}${localizePath('/install', locale)}`}
+            class="bg-accent-600 hover:bg-accent-700 inline-flex h-11 items-center justify-center gap-2 rounded-md px-6 text-sm font-medium text-white shadow-sm transition-all hover:shadow-md"
+          >
+            {t(locale, 'hero.ctaPrimary')}
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7"></path>
+            </svg>
+          </a>
+          <a
+            href="https://github.com/Hikaru-Ito/sidekick-extension"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="border-border bg-surface-elevated text-fg-default shadow-xs hover:bg-surface-muted inline-flex h-11 items-center justify-center gap-2 rounded-md border px-6 text-sm font-medium transition-all"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"
+              ><path
+                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
+              ></path></svg
+            >
+            {t(locale, 'hero.ctaSecondary')}
+          </a>
+        </div>
+        <p class="text-fg-subtle mt-4 text-xs">
+          {t(locale, 'hero.footnote')}
+        </p>
+      </div>
+
+      <!-- Popup preview mockup -->
+      <div class="mt-16 flex justify-center">
+        <div
+          class="border-border bg-surface-elevated relative w-full max-w-md rounded-2xl border shadow-2xl"
+        >
+          <div class="border-border flex h-12 items-center gap-2 border-b px-3">
+            <div
+              class="bg-accent-500/12 text-accent-600 flex h-7 w-7 items-center justify-center rounded-md"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg
+              >
+            </div>
+            <span class="text-sm font-semibold">Sidekick</span>
+            <span class="text-fg-subtle ml-auto text-[11px]">
+              {t(locale, 'hero.previewTagline')}
+            </span>
+          </div>
+          <div class="space-y-3 p-3">
+            <div class="text-fg-subtle px-1.5 text-[10px] font-semibold uppercase tracking-wider">
+              {t(locale, 'hero.previewSection')}
+            </div>
+            <div class="border-border bg-surface-elevated rounded-lg border">
+              <div class="flex items-center gap-3 px-3 py-2.5">
+                <div
+                  class="bg-accent-500/12 text-accent-600 flex h-9 w-9 items-center justify-center rounded-md"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    ><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path
+                      d="M21 3v5h-5"></path><path
+                      d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path
+                      d="M3 21v-5h5"></path></svg
+                  >
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-sm font-medium">{stableFeatures[0]?.name ?? 'Auto Reload'}</div>
+                  <div class="text-fg-muted text-xs">{t(locale, 'hero.previewSummary')}</div>
+                </div>
+                <div class="bg-accent-600 relative h-[22px] w-[36px] rounded-full">
+                  <div class="absolute right-0.5 top-0.5 h-[18px] w-[18px] rounded-full bg-white">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+    <div class="text-center">
+      <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+        {t(locale, 'features.title')}
+      </h2>
+      <p class="text-fg-muted mx-auto mt-3 max-w-2xl">{t(locale, 'features.subtitle')}</p>
+    </div>
+
+    <div class="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {
+        stableFeatures.map((feature) => (
+          <a
+            href={`${baseUrl}${localizePath(`/docs/features/${feature.id}`, locale)}`}
+            class="border-border bg-surface-elevated shadow-xs group flex flex-col rounded-xl border p-6 transition-all hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div class="flex items-center gap-3">
+              <span
+                class={`flex h-10 w-10 items-center justify-center rounded-lg ${categoryColors[feature.category]}`}
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                  <path d="M3 21v-5h5" />
+                </svg>
+              </span>
+              <span class="bg-success/12 text-success rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                {t(locale, 'features.statusStable')}
+              </span>
+            </div>
+            <h3 class="mt-4 text-base font-semibold">{feature.name}</h3>
+            <p class="text-fg-muted mt-1 text-sm">{feature.description}</p>
+            <ul class="mt-4 space-y-1.5">
+              {feature.highlights.map((h) => (
+                <li class="text-fg-muted flex items-start gap-2 text-xs">
+                  <span class="bg-accent-500 mt-1 h-1 w-1 shrink-0 rounded-full" />
+                  <span>{h}</span>
+                </li>
+              ))}
+            </ul>
+          </a>
+        ))
+      }
+
+      {
+        plannedLocalized.map((feature) => (
+          <div class="border-border bg-surface-muted/40 flex flex-col rounded-xl border border-dashed p-6">
+            <div class="flex items-center gap-3">
+              <span class="bg-fg-subtle/10 text-fg-subtle flex h-10 w-10 items-center justify-center rounded-lg">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              </span>
+              <span class="bg-surface-muted text-fg-muted rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                {t(locale, 'features.statusPlanned')}
+              </span>
+            </div>
+            <h3 class="text-fg-muted mt-4 text-base font-semibold">{feature.name}</h3>
+            <p class="text-fg-subtle mt-1 text-sm">{feature.description}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Open Source -->
+  <section class="border-border bg-surface-muted/40 border-y">
+    <div class="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2">
+      <div>
+        <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+          {t(locale, 'oss.title')}
+        </h2>
+        <p class="text-fg-muted mt-3 leading-relaxed">{t(locale, 'oss.description')}</p>
+        <ul class="mt-6 space-y-3">
+          {
+            [
+              [t(locale, 'oss.point1Title'), t(locale, 'oss.point1Desc')],
+              [t(locale, 'oss.point2Title'), t(locale, 'oss.point2Desc')],
+              [t(locale, 'oss.point3Title'), t(locale, 'oss.point3Desc')],
+              [t(locale, 'oss.point4Title'), t(locale, 'oss.point4Desc')],
+            ].map(([title, desc]) => (
+              <li class="flex items-start gap-3">
+                <span class="bg-success/12 text-success mt-0.5 flex h-5 w-5 items-center justify-center rounded-full">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </span>
+                <div>
+                  <div class="text-sm font-medium">{title}</div>
+                  <div class="text-fg-muted text-xs">{desc}</div>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div
+        class="border-border bg-surface-elevated rounded-xl border p-6 font-mono text-xs leading-relaxed"
+      >
+        <div class="text-fg-subtle">{t(locale, 'oss.codeComment')}</div>
+        <pre
+          class="text-fg-default mt-2 overflow-x-auto">{`apps/extension/src/features/<feature-id>/
+├── manifest.ts          # feature declaration (id/name/category/...)
+├── Panel.tsx            # popup UI
+├── Summary.tsx?         # home-screen summary
+├── background.ts?       # service worker hook
+└── storage.ts?          # configuration persistence
+
+# Auto-registered (registry.ts uses import.meta.glob)
+# Drop matching files under apps/landing and docs/ and you're done`}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6">
+    <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">{t(locale, 'cta.title')}</h2>
+    <p class="text-fg-muted mx-auto mt-3 max-w-xl">{t(locale, 'cta.subtitle')}</p>
+    <a
+      href={`${baseUrl}${localizePath('/install', locale)}`}
+      class="bg-accent-600 hover:bg-accent-700 mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-md px-8 text-sm font-medium text-white shadow-sm transition-all"
+    >
+      {t(locale, 'cta.button')}
+    </a>
+  </section>
+</BaseLayout>

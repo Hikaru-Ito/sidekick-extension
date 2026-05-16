@@ -1,27 +1,27 @@
 # Architecture
 
-## モノレポ概観
+## Monorepo overview
 
 ```
 sidekick-extension/
 ├── apps/
-│   ├── extension/      # Chrome MV3 拡張機能 (WXT + React)
-│   └── landing/        # LP/Docs サイト (Astro)
+│   ├── extension/      # Chrome MV3 extension (WXT + React)
+│   └── landing/        # Landing + docs site (Astro, bilingual)
 ├── packages/
-│   ├── ui-kit/         # 共有Reactコンポーネント (Tailwind)
-│   ├── config/         # デザイントークン + Tailwindプリセット
-│   └── tsconfig/       # 共有tsconfig
-├── docs/               # 仕様書 (このディレクトリ)
-└── scripts/            # 機能scaffolder
+│   ├── ui-kit/         # Shared React components (Tailwind)
+│   ├── config/         # Design tokens + Tailwind preset
+│   └── tsconfig/       # Shared tsconfig
+├── docs/               # Reference documentation (this directory)
+└── scripts/            # Feature scaffolder
 ```
 
-- **pnpm workspaces** で依存関係を整理
-- **Turborepo** でビルドキャッシュ + 並列実行
-- 各ワークスペースは `@sidekick/*` という名前で他からimport
+- **pnpm workspaces** wire local packages together
+- **Turborepo** provides build caching and parallelism
+- Workspaces are referenced via `@sidekick/*` import paths
 
-## 拡張機能 (apps/extension)
+## Extension (apps/extension)
 
-### ディレクトリ構造
+### Directory layout
 
 ```
 src/
@@ -30,26 +30,26 @@ src/
 │   └── popup/
 │       ├── index.html
 │       ├── main.tsx      # createRoot
-│       ├── App.tsx       # 全体シェル (ヘッダー + ルーター)
+│       ├── App.tsx       # shell (header + view router)
 │       └── views/
-│           ├── HomeView.tsx     # カテゴリ別機能一覧
-│           └── FeatureView.tsx  # 個別機能パネルのコンテナ
+│           ├── HomeView.tsx     # category-grouped feature list
+│           └── FeatureView.tsx  # individual feature container
 ├── features/
-│   ├── registry.ts       # import.meta.glob による自動収集
+│   ├── registry.ts       # auto-collected via import.meta.glob
 │   └── <feature-id>/
-│       ├── manifest.ts   # 機能宣言
-│       ├── Panel.tsx     # ポップアップUI
-│       ├── Summary.tsx?  # 一覧のサマリ
+│       ├── manifest.ts   # feature declaration
+│       ├── Panel.tsx     # popup UI
+│       ├── Summary.tsx?  # home-screen summary
 │       ├── background.ts?
 │       └── storage.ts?
 └── lib/
-    ├── feature.ts        # FeatureManifest 型 / defineFeature
-    └── storage.ts        # chrome.storage の薄いラッパ
+    ├── feature.ts        # FeatureManifest type + defineFeature
+    └── storage.ts        # thin wrapper around chrome.storage
 ```
 
-### Feature Manifest Pattern
+### Feature manifest pattern
 
-各機能は `FeatureManifest` を default export し、registry が自動的に集める設計。
+Each feature default-exports a `FeatureManifest`; the registry collects them automatically.
 
 ```ts
 import { Zap } from 'lucide-react';
@@ -58,7 +58,7 @@ import { MyPanel } from './Panel';
 
 export default defineFeature({
   id: 'my-feature',
-  name: '私の機能',
+  name: 'My feature',
   description: '...',
   icon: Zap,
   iconTone: 'iris',
@@ -68,30 +68,31 @@ export default defineFeature({
 });
 ```
 
-これにより、新機能を追加する際に手動でimportを書く必要がなく、ディレクトリを作るだけで即UIに反映される。
+You never wire up imports manually — drop a directory and the popup picks it up on next reload.
 
-### Background Service Worker
+### Background service worker
 
-MV3のservice workerはアイドルでサスペンドされる。状態は以下を併用して保持:
+MV3 service workers idle and get suspended. State is preserved via:
 
-- `chrome.alarms` — 1分以上の周期実行 (永続)
-- `chrome.storage` — 設定/状態の永続化
-- service worker内のメモリ — 短時間の処理のみ
+- `chrome.alarms` — for periodic tasks at ≥1-minute intervals (persistent)
+- `chrome.storage` — for any configuration and runtime state
+- In-memory state in the worker — only for short, transient handlers
 
-機能がbackground処理を必要とする場合、`features/<id>/background.ts` に `registerXxxBackground()` を実装し、`entrypoints/background.ts` から呼び出す。
+When a feature needs background work, expose `registerXxxBackground()` in `features/<id>/background.ts` and call it from `entrypoints/background.ts`.
 
-## LP / Docs (apps/landing)
+## Landing / Docs (apps/landing)
 
 - Astro 4 + Tailwind + MDX
-- React は island としてのみ利用 (重いインタラクションだけ)
-- `src/data/features.ts` がLP用の機能カタログ。`pnpm gen:feature` で自動追記
-- 機能個別ページは `src/pages/docs/features/[id].astro` で動的生成
+- React is used only as islands for heavier interactions
+- Bilingual via Astro's built-in `i18n` config: English at `/`, Japanese at `/ja/`
+- `src/data/features.ts` is the source of truth for the landing feature catalog; appended by `pnpm gen:feature`
+- Per-feature pages are generated dynamically from the feature data
 
-## デザインシステム (packages/ui-kit, packages/config)
+## Design system (packages/ui-kit, packages/config)
 
-- **トークン**: `packages/config/src/tokens.ts` で集中管理
-- **Tailwindプリセット**: `packages/config/src/tailwind.preset.ts` を全アプリで継承
-- **コンポーネント**: `packages/ui-kit/src/components/` 配下にReact化
-- ベース: Radix UI primitives + class-variance-authority + Tailwind
+- **Tokens**: centralized in `packages/config/src/tokens.ts`
+- **Tailwind preset**: `packages/config/src/tailwind.preset.ts` is inherited by every app
+- **Components**: under `packages/ui-kit/src/components/`
+- Built on Radix UI primitives + class-variance-authority + Tailwind
 
-詳細は [design-system.md](./design-system.md) を参照。
+See [design-system.md](./design-system.md) for the full reference.

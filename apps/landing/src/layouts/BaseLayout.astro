@@ -2,26 +2,37 @@
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { DEFAULT_LOCALE, localeMeta, type Locale } from '../i18n/types';
 
 interface Props {
   title?: string;
   description?: string;
+  locale?: Locale;
 }
 
-const {
-  title = 'Sidekick — Your everyday browser sidekick',
-  description = 'Productivity utilities packed into a single open-source Chrome extension.',
-} = Astro.props;
+const locale: Locale = Astro.props.locale ?? (Astro.currentLocale as Locale) ?? DEFAULT_LOCALE;
+
+const defaultTitle =
+  locale === 'ja'
+    ? 'Sidekick — 毎日のブラウザに、頼れる相棒を'
+    : 'Sidekick — Your everyday browser sidekick';
+const defaultDescription =
+  locale === 'ja'
+    ? '便利機能を一つにまとめた、オープンソースの Chrome 拡張機能。'
+    : 'Productivity utilities packed into a single open-source Chrome extension.';
+
+const { title = defaultTitle, description = defaultDescription } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const htmlLang = localeMeta[locale].htmlLang;
 ---
 
 <!doctype html>
-<html lang="ja" data-theme="light">
+<html lang={htmlLang} data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
     <link rel="canonical" href={canonicalURL} />
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -29,6 +40,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
+    <meta property="og:locale" content={locale === 'ja' ? 'ja_JP' : 'en_US'} />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://rsms.me" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
@@ -41,10 +53,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     </script>
   </head>
   <body class="bg-surface text-fg-default min-h-screen antialiased">
-    <Header />
+    <Header locale={locale} />
     <main>
       <slot />
     </main>
-    <Footer />
+    <Footer locale={locale} />
   </body>
 </html>
