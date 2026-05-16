@@ -43,20 +43,22 @@ export const features: LandingFeature[] = [
     i18n: {
       en: {
         name: 'Auto Reload',
-        description: 'Auto-reload tabs at a chosen interval. Great for dashboards and live views.',
+        description:
+          'Auto-reload tabs at a fixed interval or at specific times of day. Cron-style flexibility, no cron syntax.',
         highlights: [
-          'Any interval from 5 seconds to 24 hours',
-          'Per-tab configuration',
-          'Runs in the background service worker — low overhead',
+          'Interval mode: any value from 5 seconds to 24 hours',
+          'Schedule mode: pick days of the week and specific HH:MM times',
+          'Per-tab configuration; runs in the background service worker',
         ],
       },
       ja: {
         name: '定期リロード',
-        description: '指定した間隔でタブを自動リロード。ダッシュボード監視やライブビューに便利。',
+        description:
+          '一定間隔または曜日×時刻でタブを自動リロード。cron並みの柔軟さを、初心者でも触れるUIで。',
         highlights: [
-          '5秒〜24時間の任意の間隔を指定',
-          'タブごとに個別設定可能',
-          'バックグラウンドサービスワーカーで省リソース',
+          '間隔モード: 5秒〜24時間の任意の間隔を指定',
+          'スケジュールモード: 曜日と HH:MM 時刻で柔軟に予約',
+          'タブごとに個別設定 / バックグラウンドで動作',
         ],
       },
     },

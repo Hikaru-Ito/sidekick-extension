@@ -1,7 +1,11 @@
 import { clearTabReload, readConfig, setTabReload, subscribeConfig } from './storage';
-import { MIN_INTERVAL_SECONDS } from './types';
+import { computeNextFire } from './types';
 
 const ALARM_PREFIX = 'sidekick:auto-reload:';
+/** chrome.alarms enforces a 1-minute minimum on `when`; anything sooner runs via setTimeout. */
+const ALARM_MIN_DELAY_MS = 60_000;
+/** Maximum delay we'll keep as an in-process setTimeout (5 minutes). */
+const SHORT_TIMER_CEILING_MS = 5 * 60_000;
 
 function alarmName(tabId: number): string {
   return `${ALARM_PREFIX}${tabId}`;
@@ -13,60 +17,57 @@ function parseTabIdFromAlarm(name: string): number | null {
   return Number.isFinite(id) ? id : null;
 }
 
-async function ensureAlarmForTab(tabId: number, seconds: number) {
-  const safeSeconds = Math.max(seconds, MIN_INTERVAL_SECONDS);
-  // chrome.alarms enforces a 1-minute minimum on periodInMinutes (MV3).
-  // For sub-minute intervals we fall back to setTimeout loops.
-  if (safeSeconds >= 60) {
-    chrome.alarms.create(alarmName(tabId), {
-      periodInMinutes: safeSeconds / 60,
-      delayInMinutes: safeSeconds / 60,
-    });
-  } else {
-    chrome.alarms.clear(alarmName(tabId));
-    scheduleShortInterval(tabId, safeSeconds);
+const shortIntervalTimers = new Map<number, ReturnType<typeof setTimeout>>();
+
+function clearShortTimer(tabId: number) {
+  const t = shortIntervalTimers.get(tabId);
+  if (t) {
+    clearTimeout(t);
+    shortIntervalTimers.delete(tabId);
   }
 }
 
-const shortIntervalTimers = new Map<number, ReturnType<typeof setTimeout>>();
-
-function scheduleShortInterval(tabId: number, seconds: number) {
-  const existing = shortIntervalTimers.get(tabId);
-  if (existing) clearTimeout(existing);
-  const timer = setTimeout(async () => {
+async function scheduleFire(tabId: number, fireAt: number) {
+  const delay = fireAt - Date.now();
+  if (delay <= 0) {
+    // Past due — fire immediately.
     await reloadTab(tabId);
-    const cfg = await readConfig();
-    const state = cfg.tabs[tabId];
-    if (state && cfg.enabled) {
-      const interval = state.intervalSeconds ?? cfg.intervalSeconds;
-      scheduleShortInterval(tabId, interval);
-    }
-  }, seconds * 1000);
-  shortIntervalTimers.set(tabId, timer);
+    return;
+  }
+  if (delay < ALARM_MIN_DELAY_MS && delay <= SHORT_TIMER_CEILING_MS) {
+    // chrome.alarms can't go below 1 minute; use setTimeout for sub-minute fires.
+    chrome.alarms.clear(alarmName(tabId));
+    clearShortTimer(tabId);
+    const timer = setTimeout(() => {
+      void reloadTab(tabId);
+    }, delay);
+    shortIntervalTimers.set(tabId, timer);
+  } else {
+    clearShortTimer(tabId);
+    chrome.alarms.create(alarmName(tabId), { when: fireAt });
+  }
 }
 
 async function reloadTab(tabId: number) {
   try {
     await chrome.tabs.reload(tabId, { bypassCache: false });
-    const cfg = await readConfig();
-    const state = cfg.tabs[tabId];
-    if (state) {
-      const interval = state.intervalSeconds ?? cfg.intervalSeconds;
-      await setTabReload({
-        ...state,
-        nextReloadAt: Date.now() + interval * 1000,
-      });
-    }
-  } catch (err) {
+  } catch {
     // Tab is closed or otherwise unreachable; clean up state.
     await clearTabReload(tabId);
     chrome.alarms.clear(alarmName(tabId));
-    const timer = shortIntervalTimers.get(tabId);
-    if (timer) {
-      clearTimeout(timer);
-      shortIntervalTimers.delete(tabId);
-    }
+    clearShortTimer(tabId);
+    return;
   }
+  // After reloading, compute the next fire time and reschedule.
+  const cfg = await readConfig();
+  const state = cfg.tabs[tabId];
+  if (!cfg.enabled || !state) return;
+  const next = computeNextFire(state.mode, Date.now());
+  if (next == null) {
+    // Schedule became invalid (e.g. all times removed); leave it idle.
+    return;
+  }
+  await setTabReload({ ...state, nextReloadAt: next });
 }
 
 async function reconcileAllAlarms() {
@@ -82,16 +83,17 @@ async function reconcileAllAlarms() {
   }
   // Same cleanup for in-process short-interval timers.
   for (const tabId of shortIntervalTimers.keys()) {
-    if (!cfg.enabled || !cfg.tabs[tabId]) {
-      clearTimeout(shortIntervalTimers.get(tabId));
-      shortIntervalTimers.delete(tabId);
-    }
+    if (!cfg.enabled || !cfg.tabs[tabId]) clearShortTimer(tabId);
   }
-  // Schedule alarms for every tab still in the config.
   if (!cfg.enabled) return;
   for (const state of Object.values(cfg.tabs)) {
-    const seconds = state.intervalSeconds ?? cfg.intervalSeconds;
-    await ensureAlarmForTab(state.tabId, seconds);
+    const next = computeNextFire(state.mode, Date.now());
+    if (next != null) {
+      await scheduleFire(state.tabId, next);
+    } else {
+      chrome.alarms.clear(alarmName(state.tabId));
+      clearShortTimer(state.tabId);
+    }
   }
 }
 
@@ -104,11 +106,7 @@ export function registerAutoReloadBackground() {
   chrome.tabs.onRemoved.addListener((tabId) => {
     void clearTabReload(tabId);
     chrome.alarms.clear(alarmName(tabId));
-    const timer = shortIntervalTimers.get(tabId);
-    if (timer) {
-      clearTimeout(timer);
-      shortIntervalTimers.delete(tabId);
-    }
+    clearShortTimer(tabId);
   });
 
   subscribeConfig(() => {

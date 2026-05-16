@@ -1,15 +1,14 @@
 import { useAutoReloadConfig } from './hooks';
-import { formatInterval } from './types';
+import { summarizeMode } from './types';
 
 export function AutoReloadSummary() {
   const cfg = useAutoReloadConfig();
-  const count = Object.keys(cfg.tabs).length;
-  if (!cfg.enabled || count === 0) {
+  const tabs = Object.values(cfg.tabs);
+  if (!cfg.enabled || tabs.length === 0) {
     return <span className="text-fg-subtle text-xs">未設定</span>;
   }
-  return (
-    <span className="text-fg-muted text-xs">
-      {count}タブ · {formatInterval(cfg.intervalSeconds)}
-    </span>
-  );
+  if (tabs.length === 1) {
+    return <span className="text-fg-muted text-xs">{summarizeMode(tabs[0]!.mode)}</span>;
+  }
+  return <span className="text-fg-muted text-xs">{tabs.length}タブで実行中</span>;
 }

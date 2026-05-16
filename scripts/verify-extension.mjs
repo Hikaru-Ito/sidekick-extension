@@ -139,10 +139,12 @@ async function main() {
   if (!tabEntry) {
     throw new Error(`Expected tabs[${targetTabId}] to be set`);
   }
-  if (tabEntry.intervalSeconds !== 15) {
-    throw new Error(`Expected intervalSeconds=15, got ${tabEntry.intervalSeconds}`);
+  if (tabEntry.mode?.kind !== 'interval' || tabEntry.mode.intervalSeconds !== 15) {
+    throw new Error(
+      `Expected interval mode with 15s, got ${JSON.stringify(tabEntry.mode)}`,
+    );
   }
-  ok('Storage holds enabled=true, intervalSeconds=15 for the target tab');
+  ok('Storage holds enabled=true, interval mode @ 15s for the target tab');
 
   // 8. Confirm an alarm or short-interval timer was scheduled.
   //    15 sec is below the chrome.alarms 1-minute floor, so the codebase uses
@@ -183,6 +185,66 @@ async function main() {
     throw new Error('Tab entry was expected to be cleared after toggle off');
   }
   ok('Tab entry cleared from storage');
+
+  // 11. Switch to schedule mode and apply a mock schedule (Tue, Thu @ 09:00).
+  log('feature', 'Switching to schedule mode');
+  await popup.locator('button[role="tab"]:has-text("時刻を指定")').first().click();
+  await wait(200);
+  await popup.screenshot({ path: resolve(screenshotDir, '05-schedule-default.png') });
+
+  log('feature', 'Editing days and times');
+  // Clear default (weekday) selection by tapping the "毎日" preset then "週末"? Simpler:
+  // explicitly apply the "週末" preset.
+  await popup.locator('button:has-text("週末")').first().click();
+  await wait(150);
+  // Add a 21:30 time.
+  await popup.locator('input[type="time"]').first().fill('21:30');
+  await popup.locator('button:has-text("追加")').first().click();
+  await wait(200);
+  await popup.screenshot({ path: resolve(screenshotDir, '06-schedule-edited.png') });
+
+  log('feature', 'Starting the schedule');
+  await popup.locator('button:has-text("スケジュールを開始")').first().click();
+  await wait(500);
+  await popup.screenshot({ path: resolve(screenshotDir, '07-schedule-running.png') });
+
+  const scheduled = await serviceWorker.evaluate(async () => {
+    const res = await chrome.storage.local.get('feature:auto-reload:config');
+    return res['feature:auto-reload:config'] ?? null;
+  });
+  const schedEntry = scheduled?.tabs?.[targetTabId];
+  if (!schedEntry || schedEntry.mode?.kind !== 'schedule') {
+    throw new Error(`Expected schedule mode, got ${JSON.stringify(schedEntry?.mode)}`);
+  }
+  const dayList = (schedEntry.mode.daysOfWeek || []).slice().sort();
+  if (JSON.stringify(dayList) !== JSON.stringify([0, 6])) {
+    throw new Error(`Expected daysOfWeek=[0,6] (weekend), got ${JSON.stringify(dayList)}`);
+  }
+  const hasTime = (schedEntry.mode.times || []).some(
+    (t) => t.hour === 21 && t.minute === 30,
+  );
+  if (!hasTime) {
+    throw new Error(
+      `Expected 21:30 in times list, got ${JSON.stringify(schedEntry.mode.times)}`,
+    );
+  }
+  if (!Number.isFinite(schedEntry.nextReloadAt) || schedEntry.nextReloadAt <= Date.now()) {
+    throw new Error(`Expected nextReloadAt in the future, got ${schedEntry.nextReloadAt}`);
+  }
+  ok(`Schedule mode persisted (Sat/Sun @ 21:30, nextReloadAt=${new Date(schedEntry.nextReloadAt).toLocaleString()})`);
+
+  // 12. Stop the schedule.
+  log('feature', 'Stopping the schedule');
+  await popup.locator('[role="switch"]').first().click();
+  await wait(300);
+  const cleared = await serviceWorker.evaluate(async () => {
+    const res = await chrome.storage.local.get('feature:auto-reload:config');
+    return res['feature:auto-reload:config'] ?? null;
+  });
+  if (cleared?.tabs?.[targetTabId]) {
+    throw new Error('Schedule entry should be cleared after toggle off');
+  }
+  ok('Schedule cleared');
 
   if (keepOpen) {
     log('done', 'All checks passed. Leaving Chromium open (--keep-open).');
