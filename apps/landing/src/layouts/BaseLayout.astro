@@ -30,10 +30,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
     <meta name="twitter:card" content="summary_large_image" />
-    <link
-      rel="preconnect"
-      href="https://rsms.me"
-    />
+    <link rel="preconnect" href="https://rsms.me" />
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     <script is:inline>
       const stored = localStorage.getItem('sidekick-theme');
@@ -43,7 +40,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
       document.documentElement.classList.toggle('dark', theme === 'dark');
     </script>
   </head>
-  <body class="min-h-screen bg-surface text-fg-default antialiased">
+  <body class="bg-surface text-fg-default min-h-screen antialiased">
     <Header />
     <main>
       <slot />

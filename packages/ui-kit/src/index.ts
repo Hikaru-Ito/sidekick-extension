@@ -1,12 +1,6 @@
 export { Button, buttonVariants, type ButtonProps } from './components/Button';
 export { Switch } from './components/Switch';
-export {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from './components/Card';
+export { Card, CardHeader, CardTitle, CardDescription, CardContent } from './components/Card';
 export { ListItem, type ListItemProps } from './components/ListItem';
 export { Input, type InputProps } from './components/Input';
 export {

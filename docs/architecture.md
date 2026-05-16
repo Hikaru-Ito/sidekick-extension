@@ -73,6 +73,7 @@ export default defineFeature({
 ### Background Service Worker
 
 MV3のservice workerはアイドルでサスペンドされる。状態は以下を併用して保持:
+
 - `chrome.alarms` — 1分以上の周期実行 (永続)
 - `chrome.storage` — 設定/状態の永続化
 - service worker内のメモリ — 短時間の処理のみ

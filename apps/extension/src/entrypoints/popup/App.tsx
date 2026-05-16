@@ -42,39 +42,39 @@ export function App() {
     view.kind === 'feature' ? features.find((f) => f.id === view.id) : undefined;
 
   return (
-    <div className="flex h-full min-h-[420px] flex-col bg-surface">
+    <div className="bg-surface flex h-full min-h-[420px] flex-col">
       <header
         className={cn(
-          'flex h-12 shrink-0 items-center gap-1 border-b border-border px-3',
+          'border-border flex h-12 shrink-0 items-center gap-1 border-b px-3',
           'bg-surface-elevated/80 backdrop-blur',
         )}
       >
         {view.kind === 'feature' ? (
-          <IconButton
-            label="戻る"
-            size="sm"
-            onClick={() => setView({ kind: 'home' })}
-          >
+          <IconButton label="戻る" size="sm" onClick={() => setView({ kind: 'home' })}>
             <ArrowLeft className="h-4 w-4" />
           </IconButton>
         ) : (
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent-500/12 text-accent-600">
+          <div className="bg-accent-500/12 text-accent-600 flex h-7 w-7 items-center justify-center rounded-md">
             <SidekickLogo />
           </div>
         )}
         <div className="ml-1 min-w-0 flex-1">
-          <h1 className="text-sm font-semibold leading-none text-fg-default">
+          <h1 className="text-fg-default text-sm font-semibold leading-none">
             {currentFeature?.name ?? 'Sidekick'}
           </h1>
           {view.kind === 'home' ? (
-            <p className="mt-0.5 text-[11px] text-fg-subtle">便利機能をひとつに</p>
+            <p className="text-fg-subtle mt-0.5 text-[11px]">便利機能をひとつに</p>
           ) : (
-            <p className="mt-0.5 text-[11px] text-fg-subtle line-clamp-1">
+            <p className="text-fg-subtle mt-0.5 line-clamp-1 text-[11px]">
               {currentFeature?.description}
             </p>
           )}
         </div>
-        <IconButton label={theme === 'dark' ? 'ライトモード' : 'ダークモード'} size="sm" onClick={toggle}>
+        <IconButton
+          label={theme === 'dark' ? 'ライトモード' : 'ダークモード'}
+          size="sm"
+          onClick={toggle}
+        >
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </IconButton>
         <IconButton
@@ -89,11 +89,7 @@ export function App() {
           <Github className="h-4 w-4" />
         </IconButton>
         {view.kind === 'home' ? (
-          <IconButton
-            label="設定"
-            size="sm"
-            onClick={() => chrome.runtime.openOptionsPage?.()}
-          >
+          <IconButton label="設定" size="sm" onClick={() => chrome.runtime.openOptionsPage?.()}>
             <Settings className="h-4 w-4" />
           </IconButton>
         ) : null}
@@ -105,11 +101,11 @@ export function App() {
         ) : currentFeature ? (
           <FeatureView feature={currentFeature} />
         ) : (
-          <p className="text-sm text-fg-muted">機能が見つかりません</p>
+          <p className="text-fg-muted text-sm">機能が見つかりません</p>
         )}
       </main>
 
-      <footer className="shrink-0 border-t border-border bg-surface-muted/50 px-3 py-2 text-[10px] text-fg-subtle">
+      <footer className="border-border bg-surface-muted/50 text-fg-subtle shrink-0 border-t px-3 py-2 text-[10px]">
         Sidekick v0.1.0 · {features.length} 機能 · MIT OSS
       </footer>
     </div>

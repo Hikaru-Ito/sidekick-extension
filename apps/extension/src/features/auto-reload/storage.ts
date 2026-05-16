@@ -1,9 +1,5 @@
 import { featureStorage } from '../../lib/storage';
-import {
-  DEFAULT_AUTO_RELOAD_CONFIG,
-  type AutoReloadConfig,
-  type TabReloadState,
-} from './types';
+import { DEFAULT_AUTO_RELOAD_CONFIG, type AutoReloadConfig, type TabReloadState } from './types';
 
 const store = featureStorage('auto-reload', 'local');
 const KEY = 'config';

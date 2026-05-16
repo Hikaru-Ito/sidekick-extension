@@ -40,8 +40,7 @@ export function AutoReloadPanel() {
   const activeInterval = activeState?.intervalSeconds ?? config.intervalSeconds;
 
   const otherTabs = useMemo(
-    () =>
-      Object.values(config.tabs).filter((t) => t.tabId !== activeTab?.id),
+    () => Object.values(config.tabs).filter((t) => t.tabId !== activeTab?.id),
     [config.tabs, activeTab?.id],
   );
 
@@ -91,15 +90,15 @@ export function AutoReloadPanel() {
                     isReloadingActive ? 'bg-success animate-pulse' : 'bg-fg-subtle',
                   )}
                 />
-                <p className="text-xs font-medium text-fg-muted">
+                <p className="text-fg-muted text-xs font-medium">
                   {isReloadingActive ? '実行中' : '停止中'}
                 </p>
               </div>
-              <h3 className="mt-1.5 text-sm font-semibold text-fg-default truncate">
+              <h3 className="text-fg-default mt-1.5 truncate text-sm font-semibold">
                 {activeTab?.title ?? 'タブが選択されていません'}
               </h3>
               {activeTab?.url ? (
-                <p className="mt-0.5 text-xs text-fg-subtle truncate">{activeTab.url}</p>
+                <p className="text-fg-subtle mt-0.5 truncate text-xs">{activeTab.url}</p>
               ) : null}
             </div>
             <Switch
@@ -113,10 +112,10 @@ export function AutoReloadPanel() {
           </div>
 
           {isReloadingActive && activeState ? (
-            <div className="mt-3 flex items-center gap-2 rounded-md bg-surface-muted px-3 py-2 text-xs">
-              <Timer className="h-3.5 w-3.5 text-accent-600" />
+            <div className="bg-surface-muted mt-3 flex items-center gap-2 rounded-md px-3 py-2 text-xs">
+              <Timer className="text-accent-600 h-3.5 w-3.5" />
               <span className="text-fg-muted">次のリロードまで</span>
-              <span className="ml-auto font-semibold text-fg-default">
+              <span className="text-fg-default ml-auto font-semibold">
                 <Countdown nextReloadAt={activeState.nextReloadAt} />
               </span>
             </div>
@@ -129,14 +128,13 @@ export function AutoReloadPanel() {
         <SectionHeader title="プリセット" />
         <div className="grid grid-cols-4 gap-1.5">
           {RELOAD_PRESETS.map((preset) => {
-            const isActive =
-              isReloadingActive && activeInterval === preset.seconds;
+            const isActive = isReloadingActive && activeInterval === preset.seconds;
             return (
               <button
                 key={preset.seconds}
                 onClick={() => void applyInterval(preset.seconds)}
                 className={cn(
-                  'rounded-md border px-2 py-2 text-xs font-medium transition-all duration-fast',
+                  'duration-fast rounded-md border px-2 py-2 text-xs font-medium transition-all',
                   isActive
                     ? 'border-accent-500 bg-accent-500/10 text-accent-700 dark:text-accent-300 shadow-xs'
                     : 'border-border bg-surface-elevated text-fg-muted hover:bg-surface-muted hover:text-fg-default',
@@ -167,7 +165,7 @@ export function AutoReloadPanel() {
             適用
           </Button>
         </form>
-        <p className="mt-1.5 px-1 text-[11px] text-fg-subtle">
+        <p className="text-fg-subtle mt-1.5 px-1 text-[11px]">
           5秒〜24時間まで設定可。1分未満はsetTimeout、それ以上はchrome.alarmsを使用します。
         </p>
       </div>
@@ -185,7 +183,7 @@ export function AutoReloadPanel() {
             }
           />
           <Card>
-            <div className="divide-y divide-border">
+            <div className="divide-border divide-y">
               {otherTabs.map((tab) => (
                 <ListItem
                   key={tab.tabId}
@@ -198,7 +196,7 @@ export function AutoReloadPanel() {
                   trailing={
                     <button
                       onClick={() => void clearTabReload(tab.tabId)}
-                      className="flex h-7 w-7 items-center justify-center rounded-md text-fg-subtle transition-colors hover:bg-surface-muted hover:text-danger"
+                      className="text-fg-subtle hover:bg-surface-muted hover:text-danger flex h-7 w-7 items-center justify-center rounded-md transition-colors"
                       aria-label="停止"
                     >
                       <X className="h-3.5 w-3.5" />

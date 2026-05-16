@@ -10,7 +10,9 @@
     "./tailwind": "./src/tailwind.preset.ts",
     "./tokens": "./src/tokens.ts"
   },
-  "files": ["src"],
+  "files": [
+    "src"
+  ],
   "scripts": {
     "lint": "echo skip",
     "typecheck": "tsc --noEmit",

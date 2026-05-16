@@ -3,8 +3,5 @@ import preset from '@sidekick/config/tailwind';
 
 export default {
   presets: [preset as Config],
-  content: [
-    './src/**/*.{ts,tsx,html}',
-    '../../packages/ui-kit/src/**/*.{ts,tsx}',
-  ],
+  content: ['./src/**/*.{ts,tsx,html}', '../../packages/ui-kit/src/**/*.{ts,tsx}'],
 } satisfies Config;

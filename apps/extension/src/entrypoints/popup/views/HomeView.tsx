@@ -24,7 +24,7 @@ export function HomeView({ onSelect }: Props) {
           <div key={category}>
             <SectionHeader title={categoryLabels[category]} />
             <Card>
-              <div className="divide-y divide-border">
+              <div className="divide-border divide-y">
                 {items.map((feature) => {
                   const Icon = feature.icon;
                   const Summary = feature.Summary;

@@ -1,10 +1,6 @@
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
-import {
-  forwardRef,
-  type ComponentPropsWithoutRef,
-  type ElementRef,
-} from 'react';
+import { forwardRef, type ComponentPropsWithoutRef, type ElementRef } from 'react';
 import { cn } from '../utils/cn';
 
 export const Select = SelectPrimitive.Root;
@@ -18,8 +14,8 @@ export const SelectTrigger = forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-9 w-full items-center justify-between gap-1 rounded-md border border-border bg-surface-elevated px-3 py-1 text-sm transition-colors duration-fast',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 focus-visible:border-accent-400',
+      'border-border bg-surface-elevated duration-fast flex h-9 w-full items-center justify-between gap-1 rounded-md border px-3 py-1 text-sm transition-colors',
+      'focus-visible:ring-accent-500/50 focus-visible:border-accent-400 focus-visible:outline-none focus-visible:ring-2',
       'disabled:cursor-not-allowed disabled:opacity-50',
       '[&>span]:line-clamp-1',
       className,
@@ -28,7 +24,7 @@ export const SelectTrigger = forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 text-fg-subtle" />
+      <ChevronDown className="text-fg-subtle h-4 w-4" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));
@@ -43,10 +39,9 @@ export const SelectContent = forwardRef<
       ref={ref}
       position={position}
       className={cn(
-        'relative z-50 max-h-80 min-w-[8rem] overflow-hidden rounded-md border border-border bg-surface-elevated text-fg-default shadow-md',
+        'border-border bg-surface-elevated text-fg-default relative z-50 max-h-80 min-w-[8rem] overflow-hidden rounded-md border shadow-md',
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-        position === 'popper' &&
-          'data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
+        position === 'popper' && 'data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1',
         className,
       )}
       {...props}
@@ -87,7 +82,7 @@ export const SelectItem = forwardRef<
   >
     <span className="absolute left-2 flex h-4 w-4 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-3.5 w-3.5 text-accent-600" />
+        <Check className="text-accent-600 h-3.5 w-3.5" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

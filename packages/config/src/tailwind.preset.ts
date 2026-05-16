@@ -1,15 +1,6 @@
 import type { Config } from 'tailwindcss';
 import animate from 'tailwindcss-animate';
-import {
-  colors,
-  durations,
-  easings,
-  fonts,
-  fontSizes,
-  radii,
-  shadows,
-  spacing,
-} from './tokens';
+import { colors, durations, easings, fonts, fontSizes, radii, shadows, spacing } from './tokens';
 
 const preset = {
   darkMode: 'class',

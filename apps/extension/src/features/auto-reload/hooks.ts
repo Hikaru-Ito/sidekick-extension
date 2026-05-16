@@ -25,11 +25,9 @@ export function useActiveTab(): chrome.tabs.Tab | null {
 
   useEffect(() => {
     let cancelled = false;
-    chrome.tabs
-      .query({ active: true, currentWindow: true })
-      .then(([active]) => {
-        if (!cancelled && active) setTab(active);
-      });
+    chrome.tabs.query({ active: true, currentWindow: true }).then(([active]) => {
+      if (!cancelled && active) setTab(active);
+    });
     return () => {
       cancelled = true;
     };

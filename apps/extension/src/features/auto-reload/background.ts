@@ -1,9 +1,4 @@
-import {
-  clearTabReload,
-  readConfig,
-  setTabReload,
-  subscribeConfig,
-} from './storage';
+import { clearTabReload, readConfig, setTabReload, subscribeConfig } from './storage';
 import { MIN_INTERVAL_SECONDS } from './types';
 
 const ALARM_PREFIX = 'sidekick:auto-reload:';

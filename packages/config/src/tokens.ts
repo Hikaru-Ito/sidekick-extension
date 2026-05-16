@@ -84,14 +84,7 @@ export const fonts = {
     '"Helvetica Neue"',
     'sans-serif',
   ].join(', '),
-  mono: [
-    '"JetBrains Mono"',
-    '"Fira Code"',
-    'Menlo',
-    'Monaco',
-    'Consolas',
-    'monospace',
-  ].join(', '),
+  mono: ['"JetBrains Mono"', '"Fira Code"', 'Menlo', 'Monaco', 'Consolas', 'monospace'].join(', '),
 } as const;
 
 export const fontSizes = {

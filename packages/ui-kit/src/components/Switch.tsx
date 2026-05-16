@@ -9,8 +9,8 @@ export const Switch = forwardRef<
   <SwitchPrimitives.Root
     ref={ref}
     className={cn(
-      'peer inline-flex h-[22px] w-[36px] shrink-0 cursor-pointer items-center rounded-full transition-colors duration-base ease-out',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
+      'duration-base peer inline-flex h-[22px] w-[36px] shrink-0 cursor-pointer items-center rounded-full transition-colors ease-out',
+      'focus-visible:ring-accent-500/50 focus-visible:ring-offset-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
       'disabled:cursor-not-allowed disabled:opacity-50',
       'data-[state=checked]:bg-accent-600 data-[state=unchecked]:bg-neutral-300 dark:data-[state=unchecked]:bg-neutral-700',
       className,
@@ -19,7 +19,7 @@ export const Switch = forwardRef<
   >
     <SwitchPrimitives.Thumb
       className={cn(
-        'pointer-events-none block h-[18px] w-[18px] rounded-full bg-white shadow-sm ring-0 transition-transform duration-base ease-out',
+        'duration-base pointer-events-none block h-[18px] w-[18px] rounded-full bg-white shadow-sm ring-0 transition-transform ease-out',
         'data-[state=checked]:translate-x-[16px] data-[state=unchecked]:translate-x-[2px]',
       )}
     />

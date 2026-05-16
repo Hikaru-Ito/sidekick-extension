@@ -10,13 +10,13 @@
 
 ## ✨ 機能
 
-| 機能 | カテゴリ | 状態 |
-| --- | --- | --- |
-| 定期リロード | Automation | Stable |
-| タブサスペンダー | Productivity | Planned |
+| 機能               | カテゴリ     | 状態    |
+| ------------------ | ------------ | ------- |
+| 定期リロード       | Automation   | Stable  |
+| タブサスペンダー   | Productivity | Planned |
 | スクリーンショット | Productivity | Planned |
-| カラーピッカー | Developer | Planned |
-| JSONビューア | Developer | Planned |
+| カラーピッカー     | Developer    | Planned |
+| JSONビューア       | Developer    | Planned |
 
 詳細は [LP](https://hikaru-ito.github.io/sidekick-extension) または [docs/features/](./docs/features/) を参照。
 
@@ -36,9 +36,11 @@ pnpm dev          # 拡張機能 + LP 並列起動
 ```
 
 拡張機能のみ:
+
 ```bash
 pnpm --filter @sidekick/extension dev
 ```
+
 ビルド成果物 (`.output/chrome-mv3/`) を Chrome の `chrome://extensions` から「パッケージ化されていない拡張機能を読み込む」で読み込めます。
 
 ## 📁 リポジトリ構成
@@ -63,6 +65,7 @@ pnpm gen:feature word-counter
 ```
 
 これだけで以下が生成され、自動的にポップアップに登録されます:
+
 - `apps/extension/src/features/word-counter/manifest.ts`
 - `apps/extension/src/features/word-counter/Panel.tsx`
 - `docs/features/word-counter.md`

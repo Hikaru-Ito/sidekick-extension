@@ -4,14 +4,18 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "sideEffects": ["**/*.css"],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./styles.css": "./src/styles.css",
     "./utils": "./src/utils/cn.ts"
   },
-  "files": ["src"],
+  "files": [
+    "src"
+  ],
   "scripts": {
     "lint": "echo skip",
     "typecheck": "tsc --noEmit",

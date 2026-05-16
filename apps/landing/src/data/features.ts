@@ -14,8 +14,7 @@ export const features: LandingFeature[] = [
   {
     id: 'auto-reload',
     name: '定期リロード',
-    description:
-      '指定した間隔でタブを自動リロード。ダッシュボード監視やライブビューに便利。',
+    description: '指定した間隔でタブを自動リロード。ダッシュボード監視やライブビューに便利。',
     category: 'automation',
     status: 'stable',
     highlights: [

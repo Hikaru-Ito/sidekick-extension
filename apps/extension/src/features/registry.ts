@@ -2,10 +2,7 @@ import type { FeatureManifest } from '../lib/feature';
 
 // 各 features/<id>/manifest.ts を自動収集する。
 // 新機能を追加したらディレクトリを作って manifest.ts を default export するだけでよい。
-const modules = import.meta.glob<{ default: FeatureManifest }>(
-  './*/manifest.ts',
-  { eager: true },
-);
+const modules = import.meta.glob<{ default: FeatureManifest }>('./*/manifest.ts', { eager: true });
 
 export const features: FeatureManifest[] = Object.values(modules)
   .map((mod) => mod.default)

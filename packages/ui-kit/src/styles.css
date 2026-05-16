@@ -39,10 +39,7 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-feature-settings:
-      'cv11',
-      'ss01',
-      'ss03';
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
   }
 
   *,
@@ -52,7 +49,7 @@
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-accent-500/50 ring-offset-2 ring-offset-surface;
+    @apply ring-accent-500/50 ring-offset-surface outline-none ring-2 ring-offset-2;
   }
 
   ::selection {
@@ -62,10 +59,10 @@
 
 @layer components {
   .sk-card {
-    @apply bg-surface-elevated border border-border rounded-lg shadow-xs;
+    @apply bg-surface-elevated border-border shadow-xs rounded-lg border;
   }
 
   .sk-list-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors hover:bg-surface-muted;
+    @apply hover:bg-surface-muted flex items-center gap-3 rounded-md px-3 py-2.5 transition-colors;
   }
 }
