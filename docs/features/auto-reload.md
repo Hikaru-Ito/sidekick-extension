@@ -2,6 +2,12 @@
 
 > Periodically refresh open tabs — either at a fixed interval or at specific times of day.
 
+## Demo
+
+<video src="../../apps/landing/public/demos/auto-reload.webm" controls muted loop playsinline width="380"></video>
+
+Regenerate with `pnpm record:demos -- --only auto-reload`.
+
 ## Overview
 
 Useful for monitoring dashboards, live status pages, recurring reports, or any tab whose content changes on a regular cadence. Two scheduling modes are available:

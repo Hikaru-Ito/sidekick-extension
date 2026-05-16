@@ -82,6 +82,7 @@ export const ui = {
     'feature.section.usage': 'How to use',
     'feature.section.implementation': 'Implementation notes',
     'feature.section.highlights': 'Highlights',
+    'feature.section.demo': 'Demo',
 
     'footer.tagline': 'Sidekick contributors · MIT License',
     'footer.github': 'GitHub',
@@ -170,6 +171,7 @@ export const ui = {
     'feature.section.usage': '使い方',
     'feature.section.implementation': '技術的な詳細',
     'feature.section.highlights': '主な特徴',
+    'feature.section.demo': 'デモ',
 
     'footer.tagline': 'Sidekick contributors · MIT License',
     'footer.github': 'GitHub',

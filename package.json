@@ -21,6 +21,7 @@
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "gen:feature": "node scripts/scaffold-feature.mjs",
     "verify:extension": "pnpm --filter @sidekick/extension build && node scripts/verify-extension.mjs",
+    "record:demos": "pnpm --filter @sidekick/extension build && node scripts/record-demos.mjs",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "turbo run build && changeset publish"

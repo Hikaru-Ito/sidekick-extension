@@ -73,6 +73,17 @@ If a feature needs background processing (alarms, listeners, etc.), expose a `re
 
 Use `featureStorage('<feature-id>')` from `lib/storage.ts`. Keys are automatically namespaced so different features can't clobber each other.
 
+### Demo video — required
+
+Every feature ships with a Playwright-recorded demo:
+
+1. Scaffolder generates `demos/<id>.mjs` — fill it in with the key interactions.
+2. Run `pnpm record:demos -- --only <id>` to produce `apps/landing/public/demos/<id>.webm`.
+3. Commit the `.webm` alongside your code.
+4. The video is embedded automatically in `docs/features/<id>.md` and on the LP at `/docs/features/<id>`.
+
+If your PR changes the UI of an existing feature, re-record the demo. See [CLAUDE.md](./CLAUDE.md) for the full workflow.
+
 ## 🎨 UI guidelines
 
 - Styling is Tailwind-only. No inline `style` blocks or styled-components.
@@ -85,8 +96,10 @@ Use `featureStorage('<feature-id>')` from `lib/storage.ts`. Keys are automatical
 
 - [ ] `pnpm typecheck` passes
 - [ ] `pnpm format:check` passes
+- [ ] `pnpm verify:extension` end-to-end smoke test passes
 - [ ] When adding a feature: `docs/features/<id>.md` is filled in
 - [ ] When adding a feature: `apps/landing/src/data/features.ts` has the entry
+- [ ] When the UI changed: `pnpm record:demos -- --only <id>` was re-run and the updated `.webm` is committed
 - [ ] `pnpm changeset` run to record the change
 
 ## 📝 Commit messages

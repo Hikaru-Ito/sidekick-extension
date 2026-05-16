@@ -9,6 +9,7 @@
  *   apps/extension/src/features/<id>/manifest.ts
  *   apps/extension/src/features/<id>/Panel.tsx
  *   docs/features/<id>.md
+ *   demos/<id>.mjs (Playwright scenario for `pnpm record:demos`)
  *   apps/landing/src/data/features.ts gets a new entry appended
  *
  * No changes are required to `registry.ts` — it picks up the new manifest via
@@ -99,12 +100,67 @@ export function ${componentName}() {
 writeFileSync(join(featureDir, 'manifest.ts'), manifest);
 writeFileSync(join(featureDir, 'Panel.tsx'), panel);
 
+// demos/<id>.mjs
+const demosDir = join(root, 'demos');
+mkdirSync(demosDir, { recursive: true });
+const demo = `/**
+ * Demo scenario for ${name}.
+ * Recorded to apps/landing/public/demos/${id}.webm via \`pnpm record:demos\`.
+ * Aim for a <30s flow that shows the most important interactions.
+ */
+
+export const featureId = '${id}';
+export const title = '${name}';
+
+/**
+ * @param {object} ctx
+ * @param {import('playwright').Page} ctx.popup
+ * @param {() => number} ctx.getTargetTabId
+ * @param {(ms: number) => Promise<void>} ctx.wait
+ * @param {(msg: string) => void} ctx.log
+ */
+export async function runDemo({ popup, getTargetTabId, wait, log }) {
+  // Make the popup believe getTargetTabId() is the active tab.
+  await popup.evaluate(async (tabId) => {
+    const orig = chrome.tabs.query.bind(chrome.tabs);
+    // @ts-expect-error patch
+    chrome.tabs.query = async (params) => {
+      if (params && params.active) {
+        const all = await orig({});
+        const match = all.find((t) => t.id === tabId);
+        return match ? [match] : [];
+      }
+      return orig(params);
+    };
+  }, getTargetTabId());
+
+  await wait(800);
+
+  log('Open ${name} from the menu');
+  await popup.locator('text=${name}').first().click();
+  await wait(1200);
+
+  // TODO: drive the feature UI here. Use locators with stable selectors
+  // (text content, button labels, role=). Add wait(800-1500) between
+  // interactions so the recording is legible.
+
+  await wait(1500);
+}
+`;
+writeFileSync(join(demosDir, `${id}.mjs`), demo);
+
 // docs/features/<id>.md
 const docDir = join(root, 'docs/features');
 mkdirSync(docDir, { recursive: true });
 const doc = `# ${name}
 
 > TODO: one-line description.
+
+## Demo
+
+<video src="../../apps/landing/public/demos/${id}.webm" controls muted loop playsinline width="380"></video>
+
+Regenerate with \`pnpm record:demos -- --only ${id}\`.
 
 ## Overview
 
@@ -149,10 +205,14 @@ if (existsSync(dataFile)) {
 console.log(`\n✨ Scaffolded feature '${id}'\n`);
 console.log(`  apps/extension/src/features/${id}/manifest.ts`);
 console.log(`  apps/extension/src/features/${id}/Panel.tsx`);
+console.log(`  demos/${id}.mjs`);
 console.log(`  docs/features/${id}.md`);
 console.log(`  apps/landing/src/data/features.ts (entry appended)\n`);
 console.log(`Next steps:`);
 console.log(`  - Edit manifest.ts: update description, icon, and iconTone`);
 console.log(`  - Implement the UI in Panel.tsx`);
 console.log(`  - Add background.ts / storage.ts if needed`);
-console.log(`  - Run pnpm --filter @sidekick/extension dev to try it out\n`);
+console.log(`  - Flesh out demos/${id}.mjs (mandatory — see CLAUDE.md)`);
+console.log(`  - Run pnpm --filter @sidekick/extension dev to iterate`);
+console.log(`  - Run pnpm record:demos -- --only ${id} when the UI is ready`);
+console.log(`  - Run pnpm verify:extension before opening a PR\n`);

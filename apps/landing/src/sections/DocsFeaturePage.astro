@@ -4,6 +4,7 @@ import { t } from '../i18n/ui';
 import { localizePath } from '../i18n/utils';
 import type { Locale } from '../i18n/types';
 import type { LocalizedFeature } from '../data/features';
+import { hasDemo, demoUrl } from '../lib/demos';
 
 interface Props {
   locale: Locale;
@@ -12,6 +13,8 @@ interface Props {
 
 const { locale, feature } = Astro.props;
 const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, '');
+const showDemo = hasDemo(feature.id);
+const demoSrc = showDemo ? demoUrl(baseUrl, feature.id) : null;
 
 const usageCopy = {
   en: {
@@ -71,6 +74,28 @@ const usageCopy = {
       <h1 class="mt-4 text-4xl font-semibold tracking-tight">{feature.name}</h1>
       <p class="text-fg-muted mt-3">{feature.description}</p>
     </header>
+
+    {
+      showDemo && demoSrc ? (
+        <section class="mt-8">
+          <h2 class="text-fg-default mb-3 text-lg font-semibold">
+            {t(locale, 'feature.section.demo')}
+          </h2>
+          <div class="border-border bg-surface-muted/40 mx-auto w-fit overflow-hidden rounded-2xl border p-3 shadow-md">
+            <video
+              src={demoSrc}
+              controls
+              muted
+              loop
+              autoplay
+              playsinline
+              preload="metadata"
+              class="block max-h-[640px] w-[380px] max-w-full rounded-lg bg-black"
+            />
+          </div>
+        </section>
+      ) : null
+    }
 
     <section class="prose prose-zinc dark:prose-invert mt-10 max-w-none">
       <h2 class="text-lg font-semibold">{t(locale, 'feature.section.highlights')}</h2>
