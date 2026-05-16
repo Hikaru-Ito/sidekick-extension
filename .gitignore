@@ -32,3 +32,6 @@ coverage/
 
 # Web-ext artifacts
 web-ext-artifacts/
+
+# Local verification scratch (chrome profile, screenshots)
+.tmp/

@@ -20,6 +20,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,md,mdx,json,astro,css}\"",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "gen:feature": "node scripts/scaffold-feature.mjs",
+    "verify:extension": "pnpm --filter @sidekick/extension build && node scripts/verify-extension.mjs",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "turbo run build && changeset publish"
@@ -27,6 +28,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.27.9",
     "@types/node": "^22.7.5",
+    "playwright": "^1.60.0",
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-tailwindcss": "^0.6.8",
