@@ -1,42 +1,31 @@
-import { useRef, useEffect } from 'react';
-import { Loader2, Send } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Loader2, MessageSquareText, Send } from 'lucide-react';
 import { Button, Input, cn } from '@sidekick/ui-kit';
 import { StreamingMarkdown } from './StreamingMarkdown';
 import type { ChatTurn } from '../types';
 
-interface Props {
+interface ChatThreadProps {
   turns: ChatTurn[];
   pending: string | null;
   isStreaming: boolean;
-  inputValue: string;
-  onInputChange: (value: string) => void;
-  onSubmit: () => void;
-  disabled?: boolean;
 }
 
-export function ChatView({
-  turns,
-  pending,
-  isStreaming,
-  inputValue,
-  onInputChange,
-  onSubmit,
-  disabled,
-}: Props) {
+export function ChatThread({ turns, pending, isStreaming }: ChatThreadProps) {
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [turns.length, pending]);
 
+  if (turns.length === 0 && pending === null) return null;
+
   return (
-    <div className="flex flex-col gap-4">
+    <section className="flex flex-col gap-4">
+      <header className="text-fg-subtle flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wider">
+        <MessageSquareText className="h-3.5 w-3.5" />
+        追加の質問
+      </header>
       <div className="flex flex-col gap-4">
-        {turns.length === 0 && !pending ? (
-          <p className="text-fg-subtle px-2 text-center text-sm">
-            ページについて自由に質問してください。
-          </p>
-        ) : null}
         {turns.map((t, i) => (
           <ChatBubble key={i} role={t.role} text={t.text} />
         ))}
@@ -45,30 +34,46 @@ export function ChatView({
         ) : null}
         <div ref={endRef} />
       </div>
+    </section>
+  );
+}
 
-      <form
-        className="border-border bg-surface-elevated sticky bottom-0 flex items-center gap-1.5 rounded-lg border p-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!disabled && inputValue.trim()) onSubmit();
-        }}
-      >
-        <Input
-          value={inputValue}
-          onChange={(e) => onInputChange(e.target.value)}
-          placeholder="質問を入力…"
-          disabled={disabled}
-          className="border-0 text-base focus-visible:ring-0"
-        />
-        <Button type="submit" size="md" variant="primary" disabled={disabled || !inputValue.trim()}>
-          {isStreaming ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
-        </Button>
-      </form>
-    </div>
+interface ChatInputBarProps {
+  value: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  isStreaming: boolean;
+  disabled?: boolean;
+  placeholder?: string;
+}
+
+export function ChatInputBar({
+  value,
+  onChange,
+  onSubmit,
+  isStreaming,
+  disabled,
+  placeholder = 'このページについて質問する…',
+}: ChatInputBarProps) {
+  return (
+    <form
+      className="border-border bg-surface-elevated sticky bottom-0 z-10 flex items-center gap-1.5 rounded-lg border p-2 shadow-md"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!disabled && value.trim()) onSubmit();
+      }}
+    >
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        className="border-0 text-base focus-visible:ring-0"
+      />
+      <Button type="submit" size="md" variant="primary" disabled={disabled || !value.trim()}>
+        {isStreaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+      </Button>
+    </form>
   );
 }
 

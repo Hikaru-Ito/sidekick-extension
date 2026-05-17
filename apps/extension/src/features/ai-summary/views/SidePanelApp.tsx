@@ -1,17 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  AlertTriangle,
-  Copy,
-  FileText,
-  Globe,
-  Loader2,
-  MessageSquareText,
-  RefreshCw,
-  Settings,
-  Sparkles,
-} from 'lucide-react';
-import { Button, Card, CardContent, cn } from '@sidekick/ui-kit';
-import { ChatView } from '../components/ChatView';
+import { AlertTriangle, Copy, Globe, Loader2, RefreshCw, Settings, Sparkles } from 'lucide-react';
+import { Button, Card, CardContent } from '@sidekick/ui-kit';
+import { ChatInputBar, ChatThread } from '../components/ChatView';
 import { KeyPointCards } from '../components/KeyPointCards';
 import { StreamingMarkdown } from '../components/StreamingMarkdown';
 import { UsageBadge } from '../components/UsageBadge';
@@ -26,7 +16,6 @@ import {
   type HistoryEntry,
   type KeyPoint,
   type Lang,
-  type SidePanelTab,
   type SummaryMode,
 } from '../types';
 
@@ -38,21 +27,10 @@ interface ModeRunState {
 
 const INITIAL_RUN_STATE: ModeRunState = { loading: false, error: null, usage: null };
 
-const TAB_LABELS: Record<SidePanelTab, string> = {
-  summary: 'まとめ',
-  chat: 'チャット',
-};
-
-const TAB_ICONS: Record<SidePanelTab, typeof FileText> = {
-  summary: FileText,
-  chat: MessageSquareText,
-};
-
 export function SidePanelApp() {
   const settings = useAISummarySettings();
   const [page, setPage] = useState<ExtractedPage | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
-  const [tab, setTab] = useState<SidePanelTab>('summary');
   const [overview, setOverview] = useState<string>('');
   const [keypoints, setKeypoints] = useState<KeyPoint[]>([]);
   const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
@@ -69,9 +47,8 @@ export function SidePanelApp() {
     chat: null,
   });
 
-  // Settings provide the defaults — we removed the inline model / length /
-  // tone pickers from the side panel for clarity. Users tweak defaults from
-  // the options page.
+  // All output preferences come from the options page now — no inline
+  // pickers in the side panel.
   const model = settings.prefs.defaultModel;
   const length = settings.prefs.length;
   const tone = settings.prefs.tone;
@@ -232,7 +209,8 @@ export function SidePanelApp() {
     }
   }, [settings.anthropicApiKey, page, chatInput, chatTurns, model, lang, updateMode]);
 
-  // Read the launcher intent (set by the popup). Auto-fire the summary tab.
+  // Auto-fire summary on side-panel open. An absent intent also triggers
+  // it so opening the panel via Chrome's panel UI still works.
   const intentHandledRef = useRef(false);
   useEffect(() => {
     if (intentHandledRef.current) return;
@@ -240,12 +218,10 @@ export function SidePanelApp() {
     intentHandledRef.current = true;
     void (async () => {
       const intent = await readIntent();
-      const targetTab: SidePanelTab = intent?.tab ?? 'summary';
-      setTab(targetTab);
-      if (intent) await clearIntent();
       const autostart = intent ? intent.autostart : true;
-      if (autostart && targetTab === 'summary') {
-        // Defer to next tick so the page card / tabs render first.
+      if (intent) await clearIntent();
+      if (autostart) {
+        // Defer to next tick so the page card renders first.
         setTimeout(() => runSummary(), 0);
       }
     })();
@@ -294,87 +270,83 @@ export function SidePanelApp() {
     <div className="flex flex-col gap-4">
       <PageCard page={page} pageError={pageError} onSettings={openOptions} />
 
-      <TabRow tab={tab} onChange={setTab} />
-
-      {/* Summary tab */}
-      {tab === 'summary' ? (
-        <>
-          {(overviewRun.error || keypointsRun.error) && !summaryAnyLoading ? (
-            <ErrorBanner message={overviewRun.error ?? keypointsRun.error ?? ''} />
-          ) : null}
-
-          {summaryAnyLoading ? (
-            <RunningBanner
-              label={
-                overviewRun.loading && keypointsRun.loading
-                  ? '要点と概要を生成中…'
-                  : overviewRun.loading
-                    ? '概要を生成中…'
-                    : '要点を生成中…'
-              }
-              onCancel={() => {
-                abortRefs.current.overview?.abort();
-                abortRefs.current.keypoints?.abort();
-              }}
-            />
-          ) : null}
-
-          {/* Empty state when nothing has fired yet */}
-          {!summaryHasContent && !summaryAnyLoading && page ? (
-            <Button onClick={runSummary} variant="primary" size="lg">
-              <Sparkles className="h-4 w-4" />
-              要点と概要を生成する
-            </Button>
-          ) : null}
-
-          {/* Key points (cards) — render skeleton while loading */}
-          {keypoints.length > 0 ? <KeyPointCards points={keypoints} /> : null}
-          {keypointsRun.loading && keypoints.length === 0 ? <KeyPointsSkeleton /> : null}
-
-          {/* Overview (markdown) */}
-          {overview ? (
-            <Card>
-              <CardContent className="p-4">
-                <StreamingMarkdown text={overview} />
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {/* Result footer — copy + regen + usage. NOT sticky — sits at end. */}
-          {summaryHasContent ? (
-            <SummaryFooter
-              keypoints={keypoints}
-              overview={overview}
-              usage={summaryUsage}
-              model={model}
-              lang={lang}
-              onRegen={runSummary}
-              regenDisabled={summaryAnyLoading}
-            />
-          ) : null}
-        </>
+      {/* Summary errors */}
+      {(overviewRun.error || keypointsRun.error) && !summaryAnyLoading ? (
+        <ErrorBanner message={overviewRun.error ?? keypointsRun.error ?? ''} />
       ) : null}
 
-      {/* Chat tab */}
-      {tab === 'chat' ? (
-        <>
-          {chatRun.error && !chatRun.loading ? <ErrorBanner message={chatRun.error} /> : null}
-          <ChatView
-            turns={chatTurns}
-            pending={chatPending}
-            isStreaming={chatRun.loading}
-            inputValue={chatInput}
-            onInputChange={setChatInput}
-            onSubmit={sendChatMessage}
-            disabled={!page || chatRun.loading}
-          />
-          {chatTurns.length > 0 && chatRun.usage ? (
-            <div className="border-border bg-surface-muted/40 rounded-lg border p-3">
-              <UsageBadge usage={chatRun.usage} model={model} lang={lang} />
-            </div>
-          ) : null}
-        </>
+      {/* Running indicator */}
+      {summaryAnyLoading ? (
+        <RunningBanner
+          label={
+            overviewRun.loading && keypointsRun.loading
+              ? '要点と概要を生成中…'
+              : overviewRun.loading
+                ? '概要を生成中…'
+                : '要点を生成中…'
+          }
+          onCancel={() => {
+            abortRefs.current.overview?.abort();
+            abortRefs.current.keypoints?.abort();
+          }}
+        />
       ) : null}
+
+      {/* Empty state if nothing has fired yet (rare; auto-fires on mount) */}
+      {!summaryHasContent && !summaryAnyLoading && page ? (
+        <Button onClick={runSummary} variant="primary" size="lg">
+          <Sparkles className="h-4 w-4" />
+          要点と概要を生成する
+        </Button>
+      ) : null}
+
+      {/* Key points — render skeleton while loading */}
+      {keypoints.length > 0 ? <KeyPointCards points={keypoints} /> : null}
+      {keypointsRun.loading && keypoints.length === 0 ? <KeyPointsSkeleton /> : null}
+
+      {/* Overview */}
+      {overview ? (
+        <Card>
+          <CardContent className="p-4">
+            <StreamingMarkdown text={overview} />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* Summary footer — copy + regen + usage. Not sticky. */}
+      {summaryHasContent ? (
+        <SummaryFooter
+          keypoints={keypoints}
+          overview={overview}
+          usage={summaryUsage}
+          model={model}
+          lang={lang}
+          onRegen={runSummary}
+          regenDisabled={summaryAnyLoading}
+        />
+      ) : null}
+
+      {/* Chat thread (only renders once the user has asked something) */}
+      <ChatThread turns={chatTurns} pending={chatPending} isStreaming={chatRun.loading} />
+
+      {/* Chat errors */}
+      {chatRun.error && !chatRun.loading ? <ErrorBanner message={chatRun.error} /> : null}
+
+      {/* Chat usage badge (after at least one chat turn completes) */}
+      {chatTurns.length > 0 && chatRun.usage ? (
+        <div className="border-border bg-surface-muted/40 rounded-lg border p-3">
+          <UsageBadge usage={chatRun.usage} model={model} lang={lang} />
+        </div>
+      ) : null}
+
+      {/* Chat input — sticky at the bottom of the panel, always available. */}
+      <ChatInputBar
+        value={chatInput}
+        onChange={setChatInput}
+        onSubmit={sendChatMessage}
+        isStreaming={chatRun.loading}
+        disabled={!page || chatRun.loading}
+      />
     </div>
   );
 }
@@ -419,34 +391,6 @@ function PageCard({
         </button>
       </CardContent>
     </Card>
-  );
-}
-
-function TabRow({ tab, onChange }: { tab: SidePanelTab; onChange: (t: SidePanelTab) => void }) {
-  return (
-    <div role="tablist" className="bg-surface-muted/70 border-border flex rounded-lg border p-1">
-      {(['summary', 'chat'] as SidePanelTab[]).map((t) => {
-        const Icon = TAB_ICONS[t];
-        const active = t === tab;
-        return (
-          <button
-            key={t}
-            role="tab"
-            aria-selected={active}
-            onClick={() => onChange(t)}
-            className={cn(
-              'duration-fast flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all',
-              active
-                ? 'bg-surface-elevated text-fg-default shadow-xs'
-                : 'text-fg-muted hover:text-fg-default',
-            )}
-          >
-            <Icon className="h-4 w-4" />
-            {TAB_LABELS[t]}
-          </button>
-        );
-      })}
-    </div>
   );
 }
 

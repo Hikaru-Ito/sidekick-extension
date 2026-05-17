@@ -8,7 +8,6 @@ import {
   type HistoryEntry,
   type Lang,
   type Length,
-  type SidePanelTab,
   type Tone,
   type UserPreferences,
 } from './types';
@@ -22,9 +21,8 @@ const INTENT_KEY = 'intent';
 
 /** Hand-off from popup launcher to the side panel. */
 export interface LauncherIntent {
-  /** Which UI tab to land on. `summary` auto-fires overview + keypoints. */
-  tab: SidePanelTab;
   tabId: number;
+  /** When true, the side panel kicks off overview + keypoints on mount. */
   autostart: boolean;
   /** Epoch ms — used to expire stale intents (older than 30s). */
   createdAt: number;

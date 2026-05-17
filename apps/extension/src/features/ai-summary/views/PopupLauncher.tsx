@@ -31,9 +31,8 @@ export function PopupLauncher() {
         return;
       }
       // The side panel reads this intent on mount and auto-fires both
-      // overview + keypoints inside the merged summary tab.
+      // overview + keypoints in the unified view.
       await writeIntent({
-        tab: 'summary',
         tabId,
         autostart: true,
         createdAt: Date.now(),

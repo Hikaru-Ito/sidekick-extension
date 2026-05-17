@@ -21,8 +21,6 @@ export default defineConfig({
     side_panel: {
       default_path: 'sidepanel.html',
     },
-    // We always open the options page as a full tab via chrome.tabs.create in
-    // user-facing code, so we don't rely on `open_in_tab` here.
     options_ui: {
       page: 'options.html',
     },
@@ -32,6 +30,17 @@ export default defineConfig({
       48: 'icon/48.png',
       96: 'icon/96.png',
       128: 'icon/128.png',
+    },
+  },
+  hooks: {
+    // WXT's `options_ui` type doesn't carry `open_in_tab`, but Chrome's
+    // Manifest V3 supports it. Without it the options page opens as an
+    // embedded dialog from chrome://extensions; with it Chrome opens it
+    // in a real tab — which is what we want.
+    'build:manifestGenerated': (_wxt, manifest) => {
+      if (manifest.options_ui) {
+        (manifest.options_ui as unknown as Record<string, unknown>).open_in_tab = true;
+      }
     },
   },
   vite: () => ({
