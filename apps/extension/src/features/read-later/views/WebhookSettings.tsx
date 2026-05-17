@@ -315,14 +315,23 @@ function WebhookRow({
             <p className="text-fg-subtle mt-1 text-[10px] leading-relaxed">
               使用可能変数: <code>{`{{title}}`}</code> <code>{`{{url}}`}</code>{' '}
               <code>{`{{hostname}}`}</code> <code>{`{{description}}`}</code>{' '}
-              <code>{`{{tags}}`}</code> <code>{`{{notes}}`}</code> <code>{`{{summary}}`}</code>{' '}
-              <code>{`{{overview}}`}</code> <code>{`{{keypoints}}`}</code>{' '}
-              <code>{`{{savedAt}}`}</code>
+              <code>{`{{image}}`}</code> <code>{`{{tags}}`}</code> <code>{`{{notes}}`}</code>{' '}
+              <code>{`{{summary}}`}</code> <code>{`{{overview}}`}</code>{' '}
+              <code>{`{{keypoints}}`}</code> <code>{`{{savedAt}}`}</code>
               {'  '}/ セクション:{' '}
               <code>
                 {`{{#summary}}`}…{`{{/summary}}`}
+              </code>{' '}
+              <code>
+                {`{{#image}}`}…{`{{/image}}`}
               </code>
             </p>
+            {webhook.provider === 'slack' || webhook.provider === 'discord' ? (
+              <p className="text-fg-subtle mt-1.5 text-[10px] leading-relaxed">
+                💡 テンプレに <code>{`{{image}}`}</code>{' '}
+                が含まれない場合は、OGP画像が自動でプレビュー添付されます。
+              </p>
+            ) : null}
           </Field>
 
           <div className="flex items-center gap-2">

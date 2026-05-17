@@ -24,6 +24,132 @@ function grabRawPage(): RawPage {
   };
 }
 
+/**
+ * Find the best cover image for the page. Priority:
+ *   1. og:image / og:image:url / og:image:secure_url
+ *   2. twitter:image / twitter:image:src
+ *   3. JSON-LD article image
+ *   4. link rel="image_src"
+ *   5. Largest visible <img> in the article body (heuristic fallback)
+ * Returns an absolute URL or undefined.
+ */
+export function findCoverImage(doc: Document, baseUrl: string): string | undefined {
+  const metaSelectors = [
+    'meta[property="og:image"]',
+    'meta[property="og:image:url"]',
+    'meta[property="og:image:secure_url"]',
+    'meta[name="og:image"]',
+    'meta[name="twitter:image"]',
+    'meta[name="twitter:image:src"]',
+    'meta[property="twitter:image"]',
+  ];
+  for (const sel of metaSelectors) {
+    const el = doc.querySelector(sel);
+    const content = el?.getAttribute('content');
+    if (content) {
+      const abs = toAbsolute(content, baseUrl);
+      if (abs) return abs;
+    }
+  }
+
+  // JSON-LD: look for objects with an `image` field. Articles often expose
+  // either a string or { "@type": "ImageObject", "url": ... }.
+  const ldNodes = Array.from(doc.querySelectorAll('script[type="application/ld+json"]'));
+  for (const node of ldNodes) {
+    const raw = node.textContent;
+    if (!raw) continue;
+    try {
+      const data: unknown = JSON.parse(raw);
+      const image = findImageInLd(data);
+      if (image) {
+        const abs = toAbsolute(image, baseUrl);
+        if (abs) return abs;
+      }
+    } catch {
+      /* JSON-LD blocks frequently contain malformed JSON; skip silently. */
+    }
+  }
+
+  const linkImage = doc.querySelector('link[rel="image_src"]')?.getAttribute('href');
+  if (linkImage) {
+    const abs = toAbsolute(linkImage, baseUrl);
+    if (abs) return abs;
+  }
+
+  return undefined;
+}
+
+function findImageInLd(node: unknown): string | undefined {
+  if (!node) return undefined;
+  if (typeof node === 'string') return undefined;
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findImageInLd(child);
+      if (found) return found;
+    }
+    return undefined;
+  }
+  if (typeof node !== 'object') return undefined;
+  const obj = node as Record<string, unknown>;
+  const image = obj.image;
+  if (image) {
+    if (typeof image === 'string') return image;
+    if (Array.isArray(image)) {
+      for (const it of image) {
+        if (typeof it === 'string') return it;
+        if (it && typeof it === 'object') {
+          const url = (it as Record<string, unknown>).url;
+          if (typeof url === 'string') return url;
+        }
+      }
+    }
+    if (typeof image === 'object') {
+      const url = (image as Record<string, unknown>).url;
+      if (typeof url === 'string') return url;
+    }
+  }
+  // Recurse into common nested shapes (`@graph`, `mainEntity`, ...).
+  for (const key of ['@graph', 'mainEntity', 'mainEntityOfPage']) {
+    const val = obj[key];
+    if (val) {
+      const found = findImageInLd(val);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
+function toAbsolute(raw: string, baseUrl: string): string | undefined {
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+  try {
+    return new URL(trimmed, baseUrl).href;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Fallback heuristic: largest <img> in the parsed article HTML (Readability output). */
+function findLargestImage(html: string, baseUrl: string): string | undefined {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  let bestUrl: string | undefined;
+  let bestArea = 0;
+  for (const img of Array.from(doc.querySelectorAll('img'))) {
+    const src = img.getAttribute('src') || img.getAttribute('data-src');
+    if (!src) continue;
+    const abs = toAbsolute(src, baseUrl);
+    if (!abs || abs.startsWith('data:')) continue;
+    const w = Number(img.getAttribute('width')) || 0;
+    const h = Number(img.getAttribute('height')) || 0;
+    const area = w * h || 1; // unknown dimensions fall back to "any image is fine"
+    if (area > bestArea) {
+      bestArea = area;
+      bestUrl = abs;
+    }
+  }
+  return bestUrl;
+}
+
 function truncate(text: string, max = MAX_CHARS): string {
   if (text.length <= max) return text;
   return text.slice(0, max) + '\n\n[…content truncated to fit context window]';
@@ -74,6 +200,7 @@ export async function extractTab(tabId: number, knownUrl?: string): Promise<Extr
     return null;
   }
 
+  let coverImage: string | undefined;
   try {
     const doc = new DOMParser().parseFromString(raw.html, 'text/html');
     // Resolve <base> so relative links survive Readability if we ever render
@@ -83,8 +210,14 @@ export async function extractTab(tabId: number, knownUrl?: string): Promise<Extr
       base.href = raw.url;
       doc.head.insertBefore(base, doc.head.firstChild);
     }
+    coverImage = findCoverImage(doc, raw.url);
     const article = new Readability(doc).parse();
     if (article && article.textContent && article.textContent.trim().length > 200) {
+      // Heuristic fallback when meta tags were silent: use the largest <img>
+      // Readability found in the article body.
+      if (!coverImage && article.content) {
+        coverImage = findLargestImage(article.content, raw.url);
+      }
       return {
         title: article.title || raw.title,
         url: raw.url,
@@ -94,6 +227,7 @@ export async function extractTab(tabId: number, knownUrl?: string): Promise<Extr
         content: truncate(article.textContent.trim()),
         length: article.textContent.length,
         fallback: false,
+        image: coverImage,
       };
     }
   } catch (err) {
@@ -111,6 +245,7 @@ export async function extractTab(tabId: number, knownUrl?: string): Promise<Extr
     content: truncate(text),
     length: text.length,
     fallback: true,
+    image: coverImage,
   };
 }
 

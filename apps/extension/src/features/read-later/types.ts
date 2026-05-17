@@ -14,6 +14,11 @@ export interface ReadLaterItem {
   notes: string;
   summary: ReadLaterSummary | null;
   deliveries: WebhookDelivery[];
+  /**
+   * Cover image URL — typically resolved from og:image / twitter:image / JSON-LD,
+   * with a heuristic fallback to the largest visible <img> in the article.
+   */
+  image?: string;
 }
 
 export interface ReadLaterSummary {
@@ -90,18 +95,21 @@ export const WEBHOOK_PROVIDER_LABEL: Record<WebhookProvider, string> = {
 
 export const DEFAULT_SLACK_TEMPLATE = `📚 *{{title}}*
 <{{url}}|{{hostname}}>{{#tags}}
-{{tags}}{{/tags}}{{#summary}}
+{{tags}}{{/tags}}{{#image}}
+{{image}}{{/image}}{{#summary}}
 
 {{summary}}{{/summary}}`;
 
 export const DEFAULT_DISCORD_TEMPLATE = `📚 **{{title}}**
-{{url}}{{#summary}}
+{{url}}{{#image}}
+{{image}}{{/image}}{{#summary}}
 
 {{summary}}{{/summary}}`;
 
 export const DEFAULT_CUSTOM_TEMPLATE = `{
   "title": "{{title}}",
   "url": "{{url}}",
+  "image": "{{image}}",
   "tags": "{{tags}}",
   "summary": "{{summary}}"
 }`;
@@ -111,7 +119,9 @@ export const DEFAULT_LINEAR_DESCRIPTION_TEMPLATE = `[{{title}}]({{url}})
 
 Saved from {{hostname}} on {{savedAt}}.{{#tags}}
 
-Tags: {{tags}}{{/tags}}{{#summary}}
+Tags: {{tags}}{{/tags}}{{#image}}
+
+![]({{image}}){{/image}}{{#summary}}
 
 ---
 

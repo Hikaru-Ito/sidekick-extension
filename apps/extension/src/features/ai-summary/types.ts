@@ -63,6 +63,12 @@ export interface ExtractedPage {
   length: number;
   /** True when Readability could not parse the page and we fell back to body text. */
   fallback: boolean;
+  /**
+   * Best-effort cover image — og:image / twitter:image / JSON-LD image /
+   * largest article <img>, in priority order. Absolute URL. Undefined when
+   * no candidate was found.
+   */
+  image?: string;
 }
 
 export interface KeyPoint {

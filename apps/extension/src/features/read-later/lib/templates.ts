@@ -13,6 +13,8 @@ export interface TemplateContext {
   summary: string; // markdown text (overview + key points combined)
   overview: string;
   keypoints: string; // markdown bullet list
+  /** Cover image absolute URL (empty when none was found). Usable in {{#image}}…{{/image}} sections. */
+  image: string;
 }
 
 export function buildContext(item: ReadLaterItem): TemplateContext {
@@ -28,6 +30,7 @@ export function buildContext(item: ReadLaterItem): TemplateContext {
     summary: summaryText,
     overview: item.summary?.overview ?? '',
     keypoints: formatKeyPoints(item.summary?.keypoints ?? []),
+    image: item.image ?? '',
   };
 }
 

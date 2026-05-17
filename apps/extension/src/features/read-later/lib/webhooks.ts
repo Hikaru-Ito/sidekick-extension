@@ -38,13 +38,35 @@ export async function deliverWebhook(
   }
 }
 
+/**
+ * True when the user's template already places the image somewhere
+ * (`{{image}}` or `{{#image}}…{{/image}}`). When true, avoid auto-injecting
+ * a second image attachment / embed — the template wins.
+ */
+function templateMentionsImage(template: string): boolean {
+  return /\{\{\s*#?\/?\s*image\s*\}\}/.test(template);
+}
+
 async function deliverSlack(webhook: WebhookConfig, item: ReadLaterItem): Promise<DeliveryResult> {
   const ctx = buildContext(item);
   const text = renderTemplate(webhook.bodyTemplate, ctx);
+  const payload: Record<string, unknown> = { text };
+  // Backward-compat auto-attachment: only kicks in when the template doesn't
+  // already reference {{image}}. Keeps older webhook configs working without
+  // requiring users to edit their template.
+  if (item.image && !templateMentionsImage(webhook.bodyTemplate)) {
+    payload.attachments = [
+      {
+        fallback: item.title,
+        image_url: item.image,
+        color: '#6366f1',
+      },
+    ];
+  }
   const res = await fetch(webhook.url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) {
     const errText = await safeText(res);
@@ -59,10 +81,23 @@ async function deliverDiscord(
 ): Promise<DeliveryResult> {
   const ctx = buildContext(item);
   const content = renderTemplate(webhook.bodyTemplate, ctx);
+  const payload: Record<string, unknown> = { content };
+  // See deliverSlack: skip the embed when the template positions the image
+  // itself (URL substituted into content → Discord auto-unfurls).
+  if (item.image && !templateMentionsImage(webhook.bodyTemplate)) {
+    payload.embeds = [
+      {
+        url: item.url,
+        title: item.title.slice(0, 256),
+        image: { url: item.image },
+        color: 0x6366f1,
+      },
+    ];
+  }
   const res = await fetch(webhook.url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ content }),
+    body: JSON.stringify(payload),
   });
   if (!res.ok) {
     const errText = await safeText(res);

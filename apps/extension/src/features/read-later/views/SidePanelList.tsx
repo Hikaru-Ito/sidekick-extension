@@ -215,98 +215,118 @@ function ItemRow({
   return (
     <li
       className={cn(
-        'border-border bg-surface-elevated shadow-xs rounded-lg border p-3',
+        'border-border bg-surface-elevated shadow-xs overflow-hidden rounded-lg border',
         isRead && 'opacity-70',
       )}
     >
-      <div className="flex items-start gap-3">
-        {item.favicon ? (
+      {item.image ? (
+        <button
+          onClick={openPage}
+          aria-label="ページを開く"
+          className="bg-surface-muted/40 block aspect-[2/1] w-full overflow-hidden"
+        >
           <img
-            src={item.favicon}
+            src={item.image}
             alt=""
-            className="mt-0.5 h-5 w-5 shrink-0 rounded-sm"
+            loading="lazy"
+            className="duration-fast h-full w-full object-cover transition-transform hover:scale-[1.02]"
             onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
+              const target = e.target as HTMLImageElement;
+              target.parentElement?.classList.add('hidden');
             }}
           />
-        ) : (
-          <Globe className="text-fg-subtle mt-0.5 h-5 w-5 shrink-0" />
-        )}
-        <div className="min-w-0 flex-1">
-          <button
-            onClick={openPage}
-            className="text-fg-default hover:text-accent-600 block text-left text-base font-semibold leading-snug"
-          >
-            {item.title}
-          </button>
-          <div className="text-fg-subtle mt-0.5 truncate text-xs">
-            {item.hostname} · {formatRelative(item.savedAt)}
-            {isRead ? ' · 読了' : ''}
-          </div>
-          {item.description ? (
-            <p className="text-fg-muted mt-1.5 line-clamp-2 text-sm leading-snug">
-              {item.description}
-            </p>
-          ) : null}
-          {item.tags.length > 0 ? (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {item.tags.map((t) => (
-                <span
-                  key={t}
-                  className="bg-surface-muted text-fg-muted rounded-full px-2 py-0.5 text-[10px] font-medium"
-                >
-                  #{t}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px]">
-        {hasSummary ? (
-          <button
-            onClick={onToggleExpand}
-            className="bg-accent-500/12 text-accent-700 dark:text-accent-300 hover:bg-accent-500/20 flex items-center gap-1 rounded-full px-2 py-0.5 font-medium transition-colors"
-          >
-            <Sparkles className="h-3 w-3" />
-            要約あり
-            {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          </button>
-        ) : null}
-        {item.deliveries.map((d) => (
-          <DeliveryBadge key={d.webhookId} delivery={d} />
-        ))}
-        <div className="ml-auto flex items-center gap-1">
-          <button
-            onClick={onToggleRead}
-            aria-label={isRead ? '未読に戻す' : '読了にする'}
-            className="text-fg-muted hover:bg-surface-muted hover:text-fg-default flex h-7 w-7 items-center justify-center rounded transition-colors"
-          >
-            {isRead ? <RotateCcw className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
-          </button>
-          <button
-            onClick={onDelete}
-            aria-label="削除"
-            className="text-fg-muted hover:bg-danger/10 hover:text-danger flex h-7 w-7 items-center justify-center rounded transition-colors"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {expanded && item.summary ? (
-        <div className="border-border mt-3 space-y-3 border-t pt-3">
-          {item.summary.keypoints.length > 0 ? (
-            <KeyPointCards points={item.summary.keypoints} />
-          ) : null}
-          {item.summary.overview ? (
-            <div className="bg-surface-muted/40 rounded-md p-3">
-              <StreamingMarkdown text={item.summary.overview} />
-            </div>
-          ) : null}
-        </div>
+        </button>
       ) : null}
+      <div className="p-3">
+        <div className="flex items-start gap-3">
+          {item.favicon ? (
+            <img
+              src={item.favicon}
+              alt=""
+              className="mt-0.5 h-5 w-5 shrink-0 rounded-sm"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <Globe className="text-fg-subtle mt-0.5 h-5 w-5 shrink-0" />
+          )}
+          <div className="min-w-0 flex-1">
+            <button
+              onClick={openPage}
+              className="text-fg-default hover:text-accent-600 block text-left text-base font-semibold leading-snug"
+            >
+              {item.title}
+            </button>
+            <div className="text-fg-subtle mt-0.5 truncate text-xs">
+              {item.hostname} · {formatRelative(item.savedAt)}
+              {isRead ? ' · 読了' : ''}
+            </div>
+            {item.description ? (
+              <p className="text-fg-muted mt-1.5 line-clamp-2 text-sm leading-snug">
+                {item.description}
+              </p>
+            ) : null}
+            {item.tags.length > 0 ? (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {item.tags.map((t) => (
+                  <span
+                    key={t}
+                    className="bg-surface-muted text-fg-muted rounded-full px-2 py-0.5 text-[10px] font-medium"
+                  >
+                    #{t}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px]">
+          {hasSummary ? (
+            <button
+              onClick={onToggleExpand}
+              className="bg-accent-500/12 text-accent-700 dark:text-accent-300 hover:bg-accent-500/20 flex items-center gap-1 rounded-full px-2 py-0.5 font-medium transition-colors"
+            >
+              <Sparkles className="h-3 w-3" />
+              要約あり
+              {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </button>
+          ) : null}
+          {item.deliveries.map((d) => (
+            <DeliveryBadge key={d.webhookId} delivery={d} />
+          ))}
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              onClick={onToggleRead}
+              aria-label={isRead ? '未読に戻す' : '読了にする'}
+              className="text-fg-muted hover:bg-surface-muted hover:text-fg-default flex h-7 w-7 items-center justify-center rounded transition-colors"
+            >
+              {isRead ? <RotateCcw className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
+            </button>
+            <button
+              onClick={onDelete}
+              aria-label="削除"
+              className="text-fg-muted hover:bg-danger/10 hover:text-danger flex h-7 w-7 items-center justify-center rounded transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {expanded && item.summary ? (
+          <div className="border-border mt-3 space-y-3 border-t pt-3">
+            {item.summary.keypoints.length > 0 ? (
+              <KeyPointCards points={item.summary.keypoints} />
+            ) : null}
+            {item.summary.overview ? (
+              <div className="bg-surface-muted/40 rounded-md p-3">
+                <StreamingMarkdown text={item.summary.overview} />
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </li>
   );
 }

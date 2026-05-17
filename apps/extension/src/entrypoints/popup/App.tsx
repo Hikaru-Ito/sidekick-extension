@@ -34,6 +34,16 @@ function useTheme() {
   return { theme, toggle: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')) };
 }
 
+// Use tabs.create directly rather than chrome.runtime.openOptionsPage().
+// The latter returns a Promise that can reject with "Could not create an
+// options page" when the popup closes before it resolves — a known race
+// in MV3 popup contexts.
+function openOptions() {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('options.html') }).catch((err) => {
+    console.warn('[popup] failed to open options', err);
+  });
+}
+
 export function App() {
   const [view, setView] = useState<View>({ kind: 'home' });
   const { theme, toggle } = useTheme();
@@ -89,7 +99,7 @@ export function App() {
           <Github className="h-4 w-4" />
         </IconButton>
         {view.kind === 'home' ? (
-          <IconButton label="設定" size="sm" onClick={() => chrome.runtime.openOptionsPage?.()}>
+          <IconButton label="設定" size="sm" onClick={openOptions}>
             <Settings className="h-4 w-4" />
           </IconButton>
         ) : null}
@@ -106,7 +116,7 @@ export function App() {
       </main>
 
       <footer className="border-border bg-surface-muted/50 text-fg-subtle shrink-0 border-t px-3 py-2 text-[10px]">
-        Sidekick v0.1.0 · {features.length} 機能 · MIT OSS
+        Sidekick v0.3.0 · {features.length} 機能 · MIT OSS
       </footer>
     </div>
   );
