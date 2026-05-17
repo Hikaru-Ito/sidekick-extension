@@ -37,6 +37,33 @@ export interface LocalizedFeature {
 
 export const features: LandingFeature[] = [
   {
+    id: 'ai-summary',
+    category: 'productivity',
+    status: 'beta',
+    i18n: {
+      en: {
+        name: 'AI Page Summary',
+        description:
+          'Have Claude read the page you are on — get an overview, key points, or follow-up answers. BYOK, fully client-side.',
+        highlights: [
+          'Three modes: overview (streaming markdown), key points (cards), chat (Q&A)',
+          'Anthropic prompt caching: switching modes on the same page is ~90% cheaper',
+          'Your API key never leaves chrome.storage.local — no Sidekick backend',
+        ],
+      },
+      ja: {
+        name: 'ページAI要約',
+        description:
+          '開いているページを Claude が要約 / 要点抽出 / 追加質問に回答。BYOK、完全クライアントサイド。',
+        highlights: [
+          '概要 (markdownストリーミング) / 要点カード / チャット の3モード',
+          'Anthropic Prompt Caching でモード切替が約90%安く',
+          'APIキーは chrome.storage.local のみ。バックエンドなし',
+        ],
+      },
+    },
+  },
+  {
     id: 'auto-reload',
     category: 'automation',
     status: 'stable',
