@@ -22,7 +22,7 @@ export function ChoiceGroup<T extends string>({ value, onChange, choices }: Prop
             type="button"
             onClick={() => onChange(c.value)}
             className={cn(
-              'duration-fast flex-1 rounded-sm px-2 py-1 text-xs font-medium transition-all',
+              'duration-fast flex-1 rounded-sm px-2.5 py-1.5 text-sm font-medium transition-all',
               selected
                 ? 'bg-surface-elevated text-fg-default shadow-xs'
                 : 'text-fg-muted hover:text-fg-default',

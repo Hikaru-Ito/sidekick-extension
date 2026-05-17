@@ -12,7 +12,6 @@ interface Props {
 const MODEL_RATES: Record<AnthropicModelId, { in: number; out: number; cacheRead: number }> = {
   'claude-opus-4-7': { in: 15, out: 75, cacheRead: 1.5 },
   'claude-sonnet-4-6': { in: 3, out: 15, cacheRead: 0.3 },
-  'claude-haiku-4-5': { in: 1, out: 5, cacheRead: 0.1 },
 };
 
 export function UsageBadge({ usage, model }: Props) {
@@ -26,8 +25,8 @@ export function UsageBadge({ usage, model }: Props) {
 
   const total = usage.inputTokens + usage.cacheReadTokens + usage.cacheCreationTokens;
   return (
-    <div className="text-fg-subtle flex items-center gap-2 text-[10px]">
-      <Sparkles className="h-3 w-3" />
+    <div className="text-fg-subtle flex items-center gap-2 text-xs">
+      <Sparkles className="h-3.5 w-3.5" />
       <span className="tabular-nums">
         in {total.toLocaleString()} · out {usage.outputTokens.toLocaleString()}
       </span>

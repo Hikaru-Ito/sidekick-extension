@@ -37,12 +37,12 @@ Switching modes on the same page within ~5 minutes reuses Anthropic's [prompt ca
 
 ## Settings
 
-| Setting         | Options                           | Default  |
-| --------------- | --------------------------------- | -------- |
-| Model           | Opus 4.7 / Sonnet 4.6 / Haiku 4.5 | Opus 4.7 |
-| Length          | 短く / ふつう / 詳しく            | ふつう   |
-| Tone            | 話し言葉 / 中立 / 硬め            | 中立     |
-| Output language | 日本語 / English                  | 日本語   |
+| Setting         | Options                | Default  |
+| --------------- | ---------------------- | -------- |
+| Model           | Opus 4.7 / Sonnet 4.6  | Opus 4.7 |
+| Length          | 短く / ふつう / 詳しく | ふつう   |
+| Tone            | 話し言葉 / 中立 / 硬め | 中立     |
+| Output language | 日本語 / English       | 日本語   |
 
 History keeps the last 20 (URL × mode × model) summaries in `chrome.storage.local`.
 

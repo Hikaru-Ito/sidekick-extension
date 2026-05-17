@@ -1,4 +1,4 @@
-export type AnthropicModelId = 'claude-opus-4-7' | 'claude-sonnet-4-6' | 'claude-haiku-4-5';
+export type AnthropicModelId = 'claude-opus-4-7' | 'claude-sonnet-4-6';
 
 export const ANTHROPIC_MODELS: {
   id: AnthropicModelId;
@@ -17,12 +17,6 @@ export const ANTHROPIC_MODELS: {
     label: 'Claude Sonnet 4.6',
     context: '1M',
     blurb: '速度と品質のバランス。日常用途に。',
-  },
-  {
-    id: 'claude-haiku-4-5',
-    label: 'Claude Haiku 4.5',
-    context: '200K',
-    blurb: '最速・最安。短い記事や軽い要約に。',
   },
 ];
 

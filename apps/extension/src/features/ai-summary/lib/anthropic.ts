@@ -29,7 +29,7 @@ export async function pingApiKey(apiKey: string): Promise<string | null> {
   try {
     const client = createClient(apiKey);
     await client.messages.create({
-      model: 'claude-haiku-4-5',
+      model: 'claude-sonnet-4-6',
       max_tokens: 16,
       messages: [{ role: 'user', content: 'ping' }],
     });

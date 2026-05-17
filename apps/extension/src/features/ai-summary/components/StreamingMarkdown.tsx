@@ -3,20 +3,20 @@ import remarkGfm from 'remark-gfm';
 
 const components: Components = {
   h1: ({ node, ...p }) => (
-    <h1 className="text-fg-default mb-2 mt-3 text-base font-semibold tracking-tight" {...p} />
+    <h1 className="text-fg-default mb-2 mt-4 text-lg font-semibold tracking-tight" {...p} />
   ),
   h2: ({ node, ...p }) => (
-    <h2 className="text-fg-default mb-1.5 mt-3 text-sm font-semibold" {...p} />
+    <h2 className="text-fg-default mb-1.5 mt-3 text-base font-semibold" {...p} />
   ),
   h3: ({ node, ...p }) => (
     <h3
-      className="text-fg-default mb-1 mt-2 text-xs font-semibold uppercase tracking-wider"
+      className="text-fg-default mb-1 mt-3 text-sm font-semibold uppercase tracking-wider"
       {...p}
     />
   ),
-  p: ({ node, ...p }) => <p className="my-1.5 text-sm leading-relaxed" {...p} />,
-  ul: ({ node, ...p }) => <ul className="my-1.5 list-disc space-y-0.5 pl-5 text-sm" {...p} />,
-  ol: ({ node, ...p }) => <ol className="my-1.5 list-decimal space-y-0.5 pl-5 text-sm" {...p} />,
+  p: ({ node, ...p }) => <p className="my-2 text-base leading-relaxed" {...p} />,
+  ul: ({ node, ...p }) => <ul className="my-2 list-disc space-y-1 pl-6 text-base" {...p} />,
+  ol: ({ node, ...p }) => <ol className="my-2 list-decimal space-y-1 pl-6 text-base" {...p} />,
   li: ({ node, ...p }) => <li className="leading-relaxed" {...p} />,
   a: ({ node, ...p }) => (
     <a
@@ -33,7 +33,7 @@ const components: Components = {
     if (inline) {
       return (
         <code
-          className="bg-surface-muted text-fg-default rounded px-1 py-0.5 font-mono text-[11px]"
+          className="bg-surface-muted text-fg-default rounded px-1.5 py-0.5 font-mono text-sm"
           {...p}
         >
           {children}
@@ -41,21 +41,21 @@ const components: Components = {
       );
     }
     return (
-      <code className="font-mono text-[11px]" {...p}>
+      <code className="font-mono text-sm" {...p}>
         {children}
       </code>
     );
   },
   pre: ({ node, ...p }) => (
     <pre
-      className="my-2 overflow-x-auto rounded-md bg-neutral-950 p-3 text-[11px] text-neutral-100"
+      className="my-3 overflow-x-auto rounded-md bg-neutral-950 p-4 text-sm text-neutral-100"
       {...p}
     />
   ),
   blockquote: ({ node, ...p }) => (
-    <blockquote className="border-accent-500/40 text-fg-muted my-2 border-l-2 pl-3 italic" {...p} />
+    <blockquote className="border-accent-500/40 text-fg-muted my-3 border-l-2 pl-4 italic" {...p} />
   ),
-  hr: () => <hr className="border-border my-3" />,
+  hr: () => <hr className="border-border my-4" />,
 };
 
 interface Props {

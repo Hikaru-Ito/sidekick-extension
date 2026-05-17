@@ -1,10 +1,11 @@
 /**
  * Demo for AI Page Summary.
  *
- * Records the popup launcher: page card + the three mode buttons that
- * hand off to the side panel. We deliberately stop at the launcher level
- * because the full summarizer flow needs a real API key (lives in the
- * side panel, not the popup) and we never commit live credentials.
+ * Records the popup launcher. With an API key configured the popup
+ * auto-redirects to the side panel; without one it surfaces a clear
+ * "open the settings page" card. We record the latter flow because the
+ * side panel runs in its own context and we never commit a working API
+ * key.
  */
 
 export const featureId = 'ai-summary';
@@ -29,7 +30,7 @@ export async function runDemo({ popup, getTargetTabId, wait, log }) {
       }
       return origQuery(params);
     };
-    // Stub out the hand-off APIs so clicks don't tear the popup down mid-recording.
+    // Stub hand-off APIs so the demo recording is stable.
     // @ts-expect-error patch
     chrome.sidePanel = chrome.sidePanel || {};
     // @ts-expect-error patch
@@ -41,10 +42,10 @@ export async function runDemo({ popup, getTargetTabId, wait, log }) {
 
   await wait(800);
 
-  log('Open the AI Page Summary feature');
+  log('Open AI Page Summary');
   await popup.locator('text=ページAI要約').first().click();
-  await wait(1300);
-
-  log('Empty state: prompt to open the settings page');
   await wait(1500);
+
+  log('Empty-state card: prompt to open the settings page');
+  await wait(2000);
 }
