@@ -2,6 +2,56 @@
 
 All notable changes to **Sidekick Extension** are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] — 2026-05-18
+
+### Added — Tabelog × Google Maps feature
+
+A new lifestyle feature for restaurant browsing: when you open a Tabelog
+restaurant page, Sidekick automatically injects a compact card under the
+rating header showing the same restaurant's rating and review count from
+Google Maps.
+
+- **Auto-injected card** — single-line, Tabelog-flavoured white card with
+  star rating, review count, confidence badge, and a deep link to Maps.
+  Rendered inside a Shadow DOM so it never conflicts with Tabelog's own CSS.
+- **Hidden-tab scrape** — no API key, no shared backend. The background
+  service worker opens `https://www.google.com/maps/search/{store} {station}`
+  in an inactive tab via `chrome.tabs.create({ active: false })`, runs a
+  self-contained scrape via `chrome.scripting.executeScript`, and closes the
+  tab. Typical round-trip is 2–4 seconds, after which the result is cached
+  for 7 days.
+- **Name-similarity gate** — list-view scrapes pick the candidate whose name
+  has the highest Dice-bigram similarity to the Tabelog store, instead of
+  defaulting to the most prominent panel. A confidence badge
+  (`高確度 ≥0.8` / `中確度 0.6–0.8` / `要確認 <0.6`) makes match quality
+  visible.
+- **Settings panel** — enable/disable, cache TTL (1/7/30 days), cache size
+  display + clear button, optional "Maps で検索" fallback link.
+
+Architecture
+
+- IndexedDB store `tabelogGmap` (LRU 500 entries, by-fetchedAt index) added
+  via a v2 schema migration. The Read Later module was updated to declare
+  the same combined schema and a `blocking()` callback so both features can
+  open the shared `sidekick` database without deadlocking.
+- Single-flight queue in the orchestrator: at most one hidden-tab scrape
+  runs at a time, rate-limited to ≥2 s apart. CAPTCHA detection pauses
+  further lookups for 30 minutes.
+- Hard 30 s timeout on the background message handler so a content-script
+  spinner never hangs indefinitely.
+- The injected scrape function is fully self-contained — all helpers live
+  inside `scrapeGmaps` because only the function body is serialised to the
+  target tab (a closure over module-scope helpers would crash with
+  ReferenceError).
+- Permissions used: `storage`, `tabs`, `scripting`, plus the existing
+  `<all_urls>` host permission.
+
+### Fixed
+
+- The Read Later background sometimes used a stale IndexedDB connection
+  after schema upgrades — the new `blocking()` handler closes outgoing
+  connections when another consumer requests an upgrade.
+
 ## [0.3.0] — 2026-05-17
 
 ### Added — Read Later feature
@@ -111,6 +161,7 @@ First public release.
 - Minimum 1-second scheduling delay — `scheduleFire` never fires synchronously, even for past-due times.
 - Strict storage migration that drops malformed entries instead of trusting them.
 
+[0.4.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.4.0
 [0.3.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.1.0
