@@ -4,7 +4,7 @@ import {
   HISTORY_LIMIT,
   type AISummarySettings,
   type HistoryEntry,
-  type SummaryMode,
+  type SidePanelTab,
 } from './types';
 
 // API keys must stay on-device — never use `sync` storage.
@@ -16,7 +16,8 @@ const INTENT_KEY = 'intent';
 
 /** Hand-off from popup launcher to the side panel. */
 export interface LauncherIntent {
-  mode: SummaryMode;
+  /** Which UI tab to land on. `summary` auto-fires overview + keypoints. */
+  tab: SidePanelTab;
   tabId: number;
   autostart: boolean;
   /** Epoch ms — used to expire stale intents (older than 30s). */

@@ -20,7 +20,13 @@ export const ANTHROPIC_MODELS: {
   },
 ];
 
+/** Discrete API operations. `overview` and `keypoints` are both rendered
+ *  inside the `summary` UI tab; `chat` is its own tab. */
 export type SummaryMode = 'overview' | 'keypoints' | 'chat';
+
+/** Side panel UI tabs. The `summary` tab fires `overview` + `keypoints`
+ *  together when entered. */
+export type SidePanelTab = 'summary' | 'chat';
 
 export type Length = 'short' | 'standard' | 'detailed';
 export type Tone = 'casual' | 'neutral' | 'formal';

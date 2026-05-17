@@ -30,9 +30,10 @@ export function PopupLauncher() {
         setError('アクティブなタブが取得できませんでした。');
         return;
       }
-      // The side panel reads this intent on mount and auto-starts the run.
+      // The side panel reads this intent on mount and auto-fires both
+      // overview + keypoints inside the merged summary tab.
       await writeIntent({
-        mode: 'overview',
+        tab: 'summary',
         tabId,
         autostart: true,
         createdAt: Date.now(),

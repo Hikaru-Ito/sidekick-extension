@@ -1,10 +1,11 @@
 import { Sparkles } from 'lucide-react';
 import type { UsageInfo } from '../lib/anthropic';
-import type { AnthropicModelId } from '../types';
+import type { AnthropicModelId, Lang } from '../types';
 
 interface Props {
   usage: UsageInfo;
   model: AnthropicModelId;
+  lang?: Lang;
 }
 
 // Rough per-1M-token rates (USD) snapshotted from public pricing.
@@ -14,7 +15,21 @@ const MODEL_RATES: Record<AnthropicModelId, { in: number; out: number; cacheRead
   'claude-sonnet-4-6': { in: 3, out: 15, cacheRead: 0.3 },
 };
 
-export function UsageBadge({ usage, model }: Props) {
+/** Fixed conversion — pricing is in USD on Anthropic's side; we display a
+ *  rough JPY approximation when the user's output language is Japanese. */
+const USD_TO_JPY = 150;
+
+function formatCost(usd: number, lang: Lang): string {
+  if (lang === 'ja') {
+    const jpy = usd * USD_TO_JPY;
+    if (jpy < 1) return `≈ ¥${jpy.toFixed(2)}`;
+    if (jpy < 10) return `≈ ¥${jpy.toFixed(1)}`;
+    return `≈ ¥${Math.round(jpy).toLocaleString('ja-JP')}`;
+  }
+  return `≈ $${usd.toFixed(4)}`;
+}
+
+export function UsageBadge({ usage, model, lang = 'ja' }: Props) {
   const rate = MODEL_RATES[model];
   const cost =
     (usage.inputTokens * rate.in +
@@ -33,7 +48,12 @@ export function UsageBadge({ usage, model }: Props) {
       {usage.cacheReadTokens > 0 ? (
         <span className="text-success">cache {usage.cacheReadTokens.toLocaleString()}</span>
       ) : null}
-      <span className="ml-auto tabular-nums">≈ ${cost.toFixed(4)}</span>
+      <span className="ml-auto tabular-nums">{formatCost(cost, lang)}</span>
+      {lang === 'ja' ? (
+        <span className="text-fg-subtle text-[10px]" title="1ドル=150円で換算">
+          (150¥/$)
+        </span>
+      ) : null}
     </div>
   );
 }

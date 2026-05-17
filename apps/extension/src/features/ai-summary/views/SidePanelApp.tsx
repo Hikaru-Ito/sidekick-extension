@@ -4,15 +4,13 @@ import {
   Copy,
   FileText,
   Globe,
-  ListChecks,
   Loader2,
   MessageSquareText,
   RefreshCw,
   Settings,
   Sparkles,
 } from 'lucide-react';
-import { Button, Card, CardContent, SectionHeader, cn } from '@sidekick/ui-kit';
-import { ChoiceGroup } from '../components/ChoiceGroup';
+import { Button, Card, CardContent, cn } from '@sidekick/ui-kit';
 import { ChatView } from '../components/ChatView';
 import { KeyPointCards } from '../components/KeyPointCards';
 import { StreamingMarkdown } from '../components/StreamingMarkdown';
@@ -22,90 +20,83 @@ import { generateKeyPoints, streamChat, streamOverview, type UsageInfo } from '.
 import { extractActiveTab, hashContent } from '../lib/extract';
 import { appendHistory, clearIntent, readIntent } from '../storage';
 import {
-  ANTHROPIC_MODELS,
   type AnthropicModelId,
   type ChatTurn,
   type ExtractedPage,
   type HistoryEntry,
   type KeyPoint,
   type Lang,
-  type Length,
+  type SidePanelTab,
   type SummaryMode,
-  type Tone,
 } from '../types';
 
-type Status =
-  | { kind: 'idle' }
-  | { kind: 'extracting' }
-  | { kind: 'streaming'; mode: SummaryMode }
-  | { kind: 'done'; mode: SummaryMode; usage: UsageInfo }
-  | { kind: 'error'; message: string };
+interface ModeRunState {
+  loading: boolean;
+  error: string | null;
+  usage: UsageInfo | null;
+}
 
-const MODE_ICONS: Record<SummaryMode, typeof FileText> = {
-  overview: FileText,
-  keypoints: ListChecks,
-  chat: MessageSquareText,
+const INITIAL_RUN_STATE: ModeRunState = { loading: false, error: null, usage: null };
+
+const TAB_LABELS: Record<SidePanelTab, string> = {
+  summary: 'まとめ',
+  chat: 'チャット',
 };
 
-const MODE_LABELS: Record<SummaryMode, string> = {
-  overview: '概要',
-  keypoints: '要点',
-  chat: 'チャット',
+const TAB_ICONS: Record<SidePanelTab, typeof FileText> = {
+  summary: FileText,
+  chat: MessageSquareText,
 };
 
 export function SidePanelApp() {
   const settings = useAISummarySettings();
   const [page, setPage] = useState<ExtractedPage | null>(null);
-  const [mode, setMode] = useState<SummaryMode>('overview');
-  const [overrideModel, setOverrideModel] = useState<AnthropicModelId | null>(null);
-  const [length, setLength] = useState<Length | null>(null);
-  const [tone, setTone] = useState<Tone | null>(null);
-  const [lang, setLang] = useState<Lang | null>(null);
-  const [status, setStatus] = useState<Status>({ kind: 'idle' });
+  const [pageError, setPageError] = useState<string | null>(null);
+  const [tab, setTab] = useState<SidePanelTab>('summary');
   const [overview, setOverview] = useState<string>('');
   const [keypoints, setKeypoints] = useState<KeyPoint[]>([]);
   const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
   const [chatPending, setChatPending] = useState<string | null>(null);
   const [chatInput, setChatInput] = useState('');
-  // Persistent usage info per mode — kept so the footer can stay visible
-  // across regenerations and the streaming state.
-  const [lastUsage, setLastUsage] = useState<Record<SummaryMode, UsageInfo | null>>({
+  const [runState, setRunState] = useState<Record<SummaryMode, ModeRunState>>({
+    overview: INITIAL_RUN_STATE,
+    keypoints: INITIAL_RUN_STATE,
+    chat: INITIAL_RUN_STATE,
+  });
+  const abortRefs = useRef<Record<SummaryMode, AbortController | null>>({
     overview: null,
     keypoints: null,
     chat: null,
   });
-  const abortRef = useRef<AbortController | null>(null);
 
-  const model = overrideModel ?? settings.prefs.defaultModel;
-  const effLen = length ?? settings.prefs.length;
-  const effTone = tone ?? settings.prefs.tone;
-  const effLang = lang ?? settings.prefs.lang;
+  // Settings provide the defaults — we removed the inline model / length /
+  // tone pickers from the side panel for clarity. Users tweak defaults from
+  // the options page.
+  const model = settings.prefs.defaultModel;
+  const length = settings.prefs.length;
+  const tone = settings.prefs.tone;
+  const lang = settings.prefs.lang;
 
-  // Pre-extract the active tab so the user sees its title in the header.
+  // Extract the active tab once on mount.
   useEffect(() => {
     let cancelled = false;
-    setStatus({ kind: 'extracting' });
     void extractActiveTab()
       .then((p) => {
         if (cancelled) return;
         setPage(p);
-        setStatus({ kind: 'idle' });
+        if (!p) setPageError('このページは読み取れません (chrome:// や 拡張機能ページなど)');
       })
       .catch((err) => {
         if (cancelled) return;
-        setStatus({
-          kind: 'error',
-          message: err instanceof Error ? err.message : 'ページ取得に失敗しました',
-        });
+        setPageError(err instanceof Error ? err.message : 'ページ取得に失敗しました');
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const cancelInFlight = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
+  const updateMode = useCallback((m: SummaryMode, patch: Partial<ModeRunState>) => {
+    setRunState((cur) => ({ ...cur, [m]: { ...cur[m], ...patch } }));
   }, []);
 
   const persistHistory = useCallback(async (entry: HistoryEntry) => {
@@ -118,24 +109,23 @@ export function SidePanelApp() {
 
   const runOverview = useCallback(async () => {
     if (!settings.anthropicApiKey || !page) return;
-    cancelInFlight();
+    abortRefs.current.overview?.abort();
     const controller = new AbortController();
-    abortRef.current = controller;
+    abortRefs.current.overview = controller;
     setOverview('');
-    setStatus({ kind: 'streaming', mode: 'overview' });
+    updateMode('overview', { loading: true, error: null });
     try {
       const result = await streamOverview({
         apiKey: settings.anthropicApiKey,
         model,
         page,
-        length: effLen,
-        tone: effTone,
-        lang: effLang,
+        length,
+        tone,
+        lang,
         signal: controller.signal,
         onDelta: (chunk) => setOverview((cur) => cur + chunk),
       });
-      setStatus({ kind: 'done', mode: 'overview', usage: result.usage });
-      setLastUsage((u) => ({ ...u, overview: result.usage }));
+      updateMode('overview', { loading: false, usage: result.usage });
       const id = `${page.url}|overview|${model}|${await hashContent(page.content)}`;
       await persistHistory({
         id,
@@ -152,42 +142,32 @@ export function SidePanelApp() {
       });
     } catch (err) {
       if ((err as { name?: string }).name === 'AbortError') return;
-      setStatus({
-        kind: 'error',
-        message: err instanceof Error ? err.message : '要約に失敗しました',
+      updateMode('overview', {
+        loading: false,
+        error: err instanceof Error ? err.message : '要約に失敗しました',
       });
     }
-  }, [
-    settings.anthropicApiKey,
-    page,
-    model,
-    effLen,
-    effTone,
-    effLang,
-    cancelInFlight,
-    persistHistory,
-  ]);
+  }, [settings.anthropicApiKey, page, model, length, tone, lang, updateMode, persistHistory]);
 
   const runKeyPoints = useCallback(async () => {
     if (!settings.anthropicApiKey || !page) return;
-    cancelInFlight();
+    abortRefs.current.keypoints?.abort();
     const controller = new AbortController();
-    abortRef.current = controller;
+    abortRefs.current.keypoints = controller;
     setKeypoints([]);
-    setStatus({ kind: 'streaming', mode: 'keypoints' });
+    updateMode('keypoints', { loading: true, error: null });
     try {
       const result = await generateKeyPoints({
         apiKey: settings.anthropicApiKey,
         model,
         page,
-        length: effLen,
-        tone: effTone,
-        lang: effLang,
+        length,
+        tone,
+        lang,
         signal: controller.signal,
       });
       setKeypoints(result.points);
-      setStatus({ kind: 'done', mode: 'keypoints', usage: result.usage });
-      setLastUsage((u) => ({ ...u, keypoints: result.usage }));
+      updateMode('keypoints', { loading: false, usage: result.usage });
       const id = `${page.url}|keypoints|${model}|${await hashContent(page.content)}`;
       await persistHistory({
         id,
@@ -204,34 +184,30 @@ export function SidePanelApp() {
       });
     } catch (err) {
       if ((err as { name?: string }).name === 'AbortError') return;
-      setStatus({
-        kind: 'error',
-        message: err instanceof Error ? err.message : '要点抽出に失敗しました',
+      updateMode('keypoints', {
+        loading: false,
+        error: err instanceof Error ? err.message : '要点抽出に失敗しました',
       });
     }
-  }, [
-    settings.anthropicApiKey,
-    page,
-    model,
-    effLen,
-    effTone,
-    effLang,
-    cancelInFlight,
-    persistHistory,
-  ]);
+  }, [settings.anthropicApiKey, page, model, length, tone, lang, updateMode, persistHistory]);
+
+  const runSummary = useCallback(() => {
+    void runOverview();
+    void runKeyPoints();
+  }, [runOverview, runKeyPoints]);
 
   const sendChatMessage = useCallback(async () => {
     if (!settings.anthropicApiKey || !page) return;
     const userMessage = chatInput.trim();
     if (!userMessage) return;
-    cancelInFlight();
+    abortRefs.current.chat?.abort();
     const controller = new AbortController();
-    abortRef.current = controller;
+    abortRefs.current.chat = controller;
     const nextTurns: ChatTurn[] = [...chatTurns, { role: 'user', text: userMessage }];
     setChatTurns(nextTurns);
     setChatInput('');
     setChatPending('');
-    setStatus({ kind: 'streaming', mode: 'chat' });
+    updateMode('chat', { loading: true, error: null });
     try {
       const result = await streamChat({
         apiKey: settings.anthropicApiKey,
@@ -239,31 +215,24 @@ export function SidePanelApp() {
         page,
         history: chatTurns,
         newUserMessage: userMessage,
-        lang: effLang,
+        lang,
         signal: controller.signal,
         onDelta: (chunk) => setChatPending((cur) => (cur ?? '') + chunk),
       });
       setChatTurns([...nextTurns, { role: 'assistant', text: result.text }]);
       setChatPending(null);
-      setStatus({ kind: 'done', mode: 'chat', usage: result.usage });
-      setLastUsage((u) => ({ ...u, chat: result.usage }));
+      updateMode('chat', { loading: false, usage: result.usage });
     } catch (err) {
       if ((err as { name?: string }).name === 'AbortError') return;
-      setStatus({
-        kind: 'error',
-        message: err instanceof Error ? err.message : 'チャットに失敗しました',
-      });
       setChatPending(null);
+      updateMode('chat', {
+        loading: false,
+        error: err instanceof Error ? err.message : 'チャットに失敗しました',
+      });
     }
-  }, [settings.anthropicApiKey, page, chatInput, chatTurns, model, effLang, cancelInFlight]);
+  }, [settings.anthropicApiKey, page, chatInput, chatTurns, model, lang, updateMode]);
 
-  const runActive = useCallback(() => {
-    if (mode === 'overview') void runOverview();
-    else if (mode === 'keypoints') void runKeyPoints();
-  }, [mode, runOverview, runKeyPoints]);
-
-  // Read the launcher intent (set by the popup) once the page is extracted.
-  // If `autostart` is true and the requested mode is overview/keypoints, fire it.
+  // Read the launcher intent (set by the popup). Auto-fire the summary tab.
   const intentHandledRef = useRef(false);
   useEffect(() => {
     if (intentHandledRef.current) return;
@@ -271,27 +240,16 @@ export function SidePanelApp() {
     intentHandledRef.current = true;
     void (async () => {
       const intent = await readIntent();
-      if (!intent) {
-        // No intent → still auto-fire overview by default so the user
-        // doesn't have to hunt for the "summarize" button.
-        setTimeout(() => void runOverview(), 0);
-        return;
-      }
-      setMode(intent.mode);
-      await clearIntent();
-      if (intent.autostart) {
-        setTimeout(() => {
-          if (intent.mode === 'overview') void runOverview();
-          else if (intent.mode === 'keypoints') void runKeyPoints();
-        }, 0);
+      const targetTab: SidePanelTab = intent?.tab ?? 'summary';
+      setTab(targetTab);
+      if (intent) await clearIntent();
+      const autostart = intent ? intent.autostart : true;
+      if (autostart && targetTab === 'summary') {
+        // Defer to next tick so the page card / tabs render first.
+        setTimeout(() => runSummary(), 0);
       }
     })();
-  }, [page, settings.anthropicApiKey, runOverview, runKeyPoints]);
-
-  const hasResultForCurrentMode =
-    (mode === 'overview' && overview.length > 0) ||
-    (mode === 'keypoints' && keypoints.length > 0) ||
-    (mode === 'chat' && chatTurns.length > 0);
+  }, [page, settings.anthropicApiKey, runSummary]);
 
   const openOptions = () => {
     void chrome.tabs.create({ url: chrome.runtime.getURL('options.html') });
@@ -308,7 +266,7 @@ export function SidePanelApp() {
             </div>
             <h3 className="text-fg-default text-lg font-semibold">ページを要約</h3>
             <p className="text-fg-muted text-base leading-relaxed">
-              開いているページを Claude に読んでもらい、概要・要点・追加質問へ答えてもらえます。
+              開いているページを Claude に読んでもらい、要点と概要・追加質問へ答えてもらえます。
               最初に Anthropic の API キーを設定してください。
             </p>
             <Button onClick={openOptions} variant="primary" size="md">
@@ -325,111 +283,97 @@ export function SidePanelApp() {
     );
   }
 
+  const overviewRun = runState.overview;
+  const keypointsRun = runState.keypoints;
+  const chatRun = runState.chat;
+  const summaryAnyLoading = overviewRun.loading || keypointsRun.loading;
+  const summaryHasContent = overview.length > 0 || keypoints.length > 0;
+  const summaryUsage = mergeUsage(overviewRun.usage, keypointsRun.usage);
+
   return (
     <div className="flex flex-col gap-4">
-      <PageCard page={page} status={status} onSettings={openOptions} />
+      <PageCard page={page} pageError={pageError} onSettings={openOptions} />
 
-      <ModeRow mode={mode} onChange={setMode} />
+      <TabRow tab={tab} onChange={setTab} />
 
-      {/* Quick controls */}
-      <div className="grid grid-cols-2 gap-3">
-        <LabeledChoice
-          label="モデル"
-          value={model}
-          onChange={(v) => setOverrideModel(v as AnthropicModelId)}
-          choices={ANTHROPIC_MODELS.map((m) => ({
-            value: m.id,
-            label: m.label.replace('Claude ', ''),
-          }))}
-        />
-        <LabeledChoice
-          label="長さ"
-          value={effLen}
-          onChange={(v) => setLength(v as Length)}
-          choices={[
-            { value: 'short', label: '短く' },
-            { value: 'standard', label: 'ふつう' },
-            { value: 'detailed', label: '詳しく' },
-          ]}
-        />
-      </div>
+      {/* Summary tab */}
+      {tab === 'summary' ? (
+        <>
+          {(overviewRun.error || keypointsRun.error) && !summaryAnyLoading ? (
+            <ErrorBanner message={overviewRun.error ?? keypointsRun.error ?? ''} />
+          ) : null}
 
-      {/* Action area (empty state for the current mode) */}
-      {!hasResultForCurrentMode && status.kind !== 'streaming' && page ? (
-        <Button onClick={runActive} variant="primary" size="lg" disabled={!page || mode === 'chat'}>
-          {mode === 'chat' ? (
-            <>下のメッセージ欄から質問してください</>
-          ) : (
-            <>
+          {summaryAnyLoading ? (
+            <RunningBanner
+              label={
+                overviewRun.loading && keypointsRun.loading
+                  ? '要点と概要を生成中…'
+                  : overviewRun.loading
+                    ? '概要を生成中…'
+                    : '要点を生成中…'
+              }
+              onCancel={() => {
+                abortRefs.current.overview?.abort();
+                abortRefs.current.keypoints?.abort();
+              }}
+            />
+          ) : null}
+
+          {/* Empty state when nothing has fired yet */}
+          {!summaryHasContent && !summaryAnyLoading && page ? (
+            <Button onClick={runSummary} variant="primary" size="lg">
               <Sparkles className="h-4 w-4" />
-              このページを要約する
-            </>
-          )}
-        </Button>
+              要点と概要を生成する
+            </Button>
+          ) : null}
+
+          {/* Key points (cards) — render skeleton while loading */}
+          {keypoints.length > 0 ? <KeyPointCards points={keypoints} /> : null}
+          {keypointsRun.loading && keypoints.length === 0 ? <KeyPointsSkeleton /> : null}
+
+          {/* Overview (markdown) */}
+          {overview ? (
+            <Card>
+              <CardContent className="p-4">
+                <StreamingMarkdown text={overview} />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {/* Result footer — copy + regen + usage. NOT sticky — sits at end. */}
+          {summaryHasContent ? (
+            <SummaryFooter
+              keypoints={keypoints}
+              overview={overview}
+              usage={summaryUsage}
+              model={model}
+              lang={lang}
+              onRegen={runSummary}
+              regenDisabled={summaryAnyLoading}
+            />
+          ) : null}
+        </>
       ) : null}
 
-      {/* Status banner */}
-      {status.kind === 'error' ? (
-        <div className="border-danger/30 bg-danger/8 text-danger flex items-start gap-2 rounded-md border px-3 py-2.5 text-sm">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>{status.message}</span>
-        </div>
-      ) : null}
-
-      {status.kind === 'streaming' ? (
-        <div className="text-fg-muted flex items-center gap-2 text-sm">
-          <Loader2 className="text-accent-600 h-4 w-4 animate-spin" />
-          {MODE_LABELS[status.mode]}を生成中…
-          <button
-            className="text-fg-subtle hover:text-danger ml-auto underline-offset-2 hover:underline"
-            onClick={cancelInFlight}
-          >
-            キャンセル
-          </button>
-        </div>
-      ) : null}
-
-      {/* Result for overview mode */}
-      {mode === 'overview' && overview ? (
-        <Card>
-          <CardContent className="p-4">
-            <StreamingMarkdown text={overview} />
-          </CardContent>
-        </Card>
-      ) : null}
-      {mode === 'overview' && overview ? (
-        <ResultFooter
-          text={overview}
-          usage={lastUsage.overview}
-          model={model}
-          onRegen={runOverview}
-          regenDisabled={status.kind === 'streaming' && status.mode === 'overview'}
-        />
-      ) : null}
-
-      {/* Result for keypoints mode */}
-      {mode === 'keypoints' && keypoints.length > 0 ? <KeyPointCards points={keypoints} /> : null}
-      {mode === 'keypoints' && keypoints.length > 0 ? (
-        <ResultFooter
-          text={JSON.stringify(keypoints, null, 2)}
-          usage={lastUsage.keypoints}
-          model={model}
-          onRegen={runKeyPoints}
-          regenDisabled={status.kind === 'streaming' && status.mode === 'keypoints'}
-        />
-      ) : null}
-
-      {/* Chat */}
-      {mode === 'chat' ? (
-        <ChatView
-          turns={chatTurns}
-          pending={chatPending}
-          isStreaming={status.kind === 'streaming' && status.mode === 'chat'}
-          inputValue={chatInput}
-          onInputChange={setChatInput}
-          onSubmit={sendChatMessage}
-          disabled={!page || (status.kind === 'streaming' && status.mode === 'chat')}
-        />
+      {/* Chat tab */}
+      {tab === 'chat' ? (
+        <>
+          {chatRun.error && !chatRun.loading ? <ErrorBanner message={chatRun.error} /> : null}
+          <ChatView
+            turns={chatTurns}
+            pending={chatPending}
+            isStreaming={chatRun.loading}
+            inputValue={chatInput}
+            onInputChange={setChatInput}
+            onSubmit={sendChatMessage}
+            disabled={!page || chatRun.loading}
+          />
+          {chatTurns.length > 0 && chatRun.usage ? (
+            <div className="border-border bg-surface-muted/40 rounded-lg border p-3">
+              <UsageBadge usage={chatRun.usage} model={model} lang={lang} />
+            </div>
+          ) : null}
+        </>
       ) : null}
     </div>
   );
@@ -437,11 +381,11 @@ export function SidePanelApp() {
 
 function PageCard({
   page,
-  status,
+  pageError,
   onSettings,
 }: {
   page: ExtractedPage | null;
-  status: Status;
+  pageError: string | null;
   onSettings: () => void;
 }) {
   return (
@@ -451,9 +395,7 @@ function PageCard({
           <Globe className="text-fg-muted h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          {status.kind === 'extracting' ? (
-            <span className="text-fg-muted text-sm">ページ取得中…</span>
-          ) : page ? (
+          {page ? (
             <>
               <div className="text-fg-default truncate text-base font-semibold">{page.title}</div>
               <div className="text-fg-subtle truncate text-xs">
@@ -462,10 +404,10 @@ function PageCard({
                 {page.fallback ? ' · fallback' : ''}
               </div>
             </>
+          ) : pageError ? (
+            <span className="text-fg-muted text-sm">{pageError}</span>
           ) : (
-            <span className="text-fg-muted text-sm">
-              このページは読み取れません (chrome:// や 拡張機能ページなど)
-            </span>
+            <span className="text-fg-muted text-sm">ページ取得中…</span>
           )}
         </div>
         <button
@@ -480,27 +422,27 @@ function PageCard({
   );
 }
 
-function ModeRow({ mode, onChange }: { mode: SummaryMode; onChange: (m: SummaryMode) => void }) {
+function TabRow({ tab, onChange }: { tab: SidePanelTab; onChange: (t: SidePanelTab) => void }) {
   return (
     <div role="tablist" className="bg-surface-muted/70 border-border flex rounded-lg border p-1">
-      {(['overview', 'keypoints', 'chat'] as SummaryMode[]).map((m) => {
-        const Icon = MODE_ICONS[m];
-        const active = m === mode;
+      {(['summary', 'chat'] as SidePanelTab[]).map((t) => {
+        const Icon = TAB_ICONS[t];
+        const active = t === tab;
         return (
           <button
-            key={m}
+            key={t}
             role="tab"
             aria-selected={active}
-            onClick={() => onChange(m)}
+            onClick={() => onChange(t)}
             className={cn(
-              'duration-fast flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all',
+              'duration-fast flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all',
               active
                 ? 'bg-surface-elevated text-fg-default shadow-xs'
                 : 'text-fg-muted hover:text-fg-default',
             )}
           >
             <Icon className="h-4 w-4" />
-            {MODE_LABELS[m]}
+            {TAB_LABELS[t]}
           </button>
         );
       })}
@@ -508,42 +450,86 @@ function ModeRow({ mode, onChange }: { mode: SummaryMode; onChange: (m: SummaryM
   );
 }
 
-function LabeledChoice<T extends string>({
-  label,
-  value,
-  onChange,
-  choices,
-}: {
-  label: string;
-  value: T;
-  onChange: (next: T) => void;
-  choices: { value: T; label: string }[];
-}) {
+function ErrorBanner({ message }: { message: string }) {
   return (
-    <div className="min-w-0">
-      <SectionHeader title={label} />
-      <ChoiceGroup value={value} onChange={onChange} choices={choices} />
+    <div className="border-danger/30 bg-danger/8 text-danger flex items-start gap-2 rounded-md border px-3 py-2.5 text-sm">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+      <span>{message}</span>
     </div>
   );
 }
 
-function ResultFooter({
-  text,
+function RunningBanner({ label, onCancel }: { label: string; onCancel: () => void }) {
+  return (
+    <div className="text-fg-muted flex items-center gap-2 text-sm">
+      <Loader2 className="text-accent-600 h-4 w-4 animate-spin" />
+      {label}
+      <button
+        className="text-fg-subtle hover:text-danger ml-auto underline-offset-2 hover:underline"
+        onClick={onCancel}
+      >
+        キャンセル
+      </button>
+    </div>
+  );
+}
+
+function KeyPointsSkeleton() {
+  return (
+    <ol className="flex flex-col gap-3">
+      {[0, 1, 2].map((i) => (
+        <li
+          key={i}
+          className="border-border bg-surface-elevated flex animate-pulse gap-3 rounded-lg border p-4"
+        >
+          <div className="bg-surface-muted h-10 w-10 shrink-0 rounded-md" />
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <div className="bg-surface-muted h-3.5 w-2/3 rounded" />
+            <div className="bg-surface-muted h-3 w-full rounded" />
+            <div className="bg-surface-muted h-3 w-5/6 rounded" />
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function SummaryFooter({
+  keypoints,
+  overview,
   usage,
   model,
+  lang,
   onRegen,
   regenDisabled,
 }: {
-  text: string;
+  keypoints: KeyPoint[];
+  overview: string;
   usage: UsageInfo | null;
   model: AnthropicModelId;
+  lang: Lang;
   onRegen: () => void;
-  regenDisabled?: boolean;
+  regenDisabled: boolean;
 }) {
-  const handleCopy = () => void navigator.clipboard.writeText(text);
+  const handleCopy = () => {
+    const parts: string[] = [];
+    if (keypoints.length > 0) {
+      parts.push(lang === 'en' ? '# Key points' : '# 要点');
+      keypoints.forEach((p, i) => {
+        parts.push(`${i + 1}. ${p.emoji} **${p.title}** — ${p.body}`);
+      });
+    }
+    if (overview) {
+      if (parts.length > 0) parts.push('');
+      parts.push(lang === 'en' ? '# Overview' : '# 概要');
+      parts.push(overview);
+    }
+    void navigator.clipboard.writeText(parts.join('\n'));
+  };
+
   return (
-    <div className="border-border bg-surface-muted/40 sticky bottom-0 -mt-2 flex flex-col gap-2 rounded-lg border p-3 backdrop-blur">
-      {usage ? <UsageBadge usage={usage} model={model} /> : null}
+    <div className="border-border bg-surface-muted/40 flex flex-col gap-2 rounded-lg border p-3">
+      {usage ? <UsageBadge usage={usage} model={model} lang={lang} /> : null}
       <div className="flex gap-2">
         <Button variant="secondary" size="md" onClick={handleCopy}>
           <Copy className="h-3.5 w-3.5" />
@@ -560,4 +546,14 @@ function ResultFooter({
       </div>
     </div>
   );
+}
+
+function mergeUsage(a: UsageInfo | null, b: UsageInfo | null): UsageInfo | null {
+  if (!a && !b) return null;
+  return {
+    inputTokens: (a?.inputTokens ?? 0) + (b?.inputTokens ?? 0),
+    outputTokens: (a?.outputTokens ?? 0) + (b?.outputTokens ?? 0),
+    cacheReadTokens: (a?.cacheReadTokens ?? 0) + (b?.cacheReadTokens ?? 0),
+    cacheCreationTokens: (a?.cacheCreationTokens ?? 0) + (b?.cacheCreationTokens ?? 0),
+  };
 }
