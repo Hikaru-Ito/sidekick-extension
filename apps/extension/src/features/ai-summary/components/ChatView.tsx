@@ -13,8 +13,25 @@ interface ChatThreadProps {
 export function ChatThread({ turns, pending, isStreaming }: ChatThreadProps) {
   const endRef = useRef<HTMLDivElement | null>(null);
 
+  // Auto-scroll to the side panel's actual bottom on every chat update.
+  // We don't use scrollIntoView on a sentinel anymore because the sticky
+  // input bar would land on top of the target, hiding the latest streamed
+  // text. Walking up to the scrollable ancestor and pinning
+  // scrollTop = scrollHeight puts the input bar at its natural position
+  // and keeps the freshest token visible just above it.
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    let el: HTMLElement | null = endRef.current?.parentElement ?? null;
+    while (el && el !== document.body) {
+      const overflowY = getComputedStyle(el).overflowY;
+      if (overflowY === 'auto' || overflowY === 'scroll') {
+        el.scrollTop = el.scrollHeight;
+        return;
+      }
+      el = el.parentElement;
+    }
+    // Fallback: no scrollable ancestor found (shouldn't happen in the
+    // side panel, but possible during unit tests).
+    window.scrollTo(0, document.documentElement.scrollHeight);
   }, [turns.length, pending]);
 
   if (turns.length === 0 && pending === null) return null;
@@ -32,7 +49,7 @@ export function ChatThread({ turns, pending, isStreaming }: ChatThreadProps) {
         {pending !== null ? (
           <ChatBubble role="assistant" text={pending} streaming={isStreaming} />
         ) : null}
-        <div ref={endRef} />
+        <div ref={endRef} aria-hidden="true" />
       </div>
     </section>
   );
