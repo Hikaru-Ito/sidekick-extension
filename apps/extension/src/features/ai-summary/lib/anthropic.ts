@@ -24,6 +24,19 @@ export function createClient(apiKey: string): Anthropic {
   });
 }
 
+// Adaptive thinking is supported only on the 4.6/4.7 model family. Older
+// models (Haiku 4.5, Sonnet 4.5, …) reject the parameter with a 400. We
+// gate it here so a stale model id surviving in storage doesn't crash the
+// whole request.
+const ADAPTIVE_THINKING_MODELS = new Set<AnthropicModelId>([
+  'claude-opus-4-7',
+  'claude-sonnet-4-6',
+]);
+
+function thinkingParam(model: AnthropicModelId): { thinking: { type: 'adaptive' } } | object {
+  return ADAPTIVE_THINKING_MODELS.has(model) ? { thinking: { type: 'adaptive' as const } } : {};
+}
+
 /** Test the API key with a tiny request. Returns null on success, error message on failure. */
 export async function pingApiKey(apiKey: string): Promise<string | null> {
   try {
@@ -69,7 +82,7 @@ export async function streamOverview(
     {
       model: params.model,
       max_tokens: 4096,
-      thinking: { type: 'adaptive' },
+      ...thinkingParam(params.model),
       system: systemPrompt(params.lang),
       messages: [
         {
@@ -125,7 +138,7 @@ export async function generateKeyPoints(
     {
       model: params.model,
       max_tokens: 1024,
-      thinking: { type: 'adaptive' },
+      ...thinkingParam(params.model),
       system: systemPrompt(params.lang),
       messages: [
         {
@@ -221,7 +234,7 @@ export async function streamChat(params: ChatParams): Promise<{ text: string; us
     {
       model: params.model,
       max_tokens: 4096,
-      thinking: { type: 'adaptive' },
+      ...thinkingParam(params.model),
       system: systemPrompt(params.lang),
       messages,
     },
