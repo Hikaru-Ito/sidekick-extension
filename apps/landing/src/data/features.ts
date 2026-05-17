@@ -37,6 +37,35 @@ export interface LocalizedFeature {
 
 export const features: LandingFeature[] = [
   {
+    id: 'read-later',
+    category: 'productivity',
+    status: 'stable',
+    i18n: {
+      en: {
+        name: 'Read Later',
+        description:
+          'Save tabs to a local IndexedDB queue. Optionally generate an AI summary on save and push to Slack, Linear, Discord, or any custom webhook.',
+        highlights: [
+          'One-click save with tags from the toolbar popup',
+          'AI summary opt-in produces key points + overview alongside the bookmark',
+          'Webhook fan-out: Slack / Linear (issue create) / Discord / Custom template',
+          'Side panel list with search, tag filter, inline summary expansion',
+        ],
+      },
+      ja: {
+        name: 'あとで読む',
+        description:
+          '今のタブをローカル IndexedDB に保存。AI 要約を同時に作って Slack / Linear / Discord / カスタム Webhook に送信できます。',
+        highlights: [
+          'ポップアップから1クリック+タグ付けで保存',
+          'AI要約オプションで要点カード+概要も一緒に保存',
+          'Webhook 連携: Slack / Linear (Issue作成) / Discord / カスタム',
+          'サイドパネルで検索・タグ絞り込み・要約インライン展開',
+        ],
+      },
+    },
+  },
+  {
     id: 'ai-summary',
     category: 'productivity',
     status: 'stable',

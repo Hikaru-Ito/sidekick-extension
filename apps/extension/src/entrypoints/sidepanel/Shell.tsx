@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Github, Moon, PanelLeftClose, Sparkles, Sun } from 'lucide-react';
+import { BookmarkPlus, Github, Moon, PanelLeftClose, Sparkles, Sun } from 'lucide-react';
 import { IconButton, cn } from '@sidekick/ui-kit';
 import { SidePanelApp } from '../../features/ai-summary/views/SidePanelApp';
+import { SidePanelList } from '../../features/read-later/views/SidePanelList';
+
+type View = 'ai-summary' | 'read-later';
+
+function readView(): View {
+  if (typeof window === 'undefined') return 'ai-summary';
+  const params = new URLSearchParams(window.location.search);
+  return params.get('view') === 'read-later' ? 'read-later' : 'ai-summary';
+}
 
 function useTheme() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -36,11 +45,31 @@ function useTheme() {
   return { theme, toggle: () => setTheme((t) => (t === 'dark' ? 'light' : 'dark')) };
 }
 
+const VIEW_LABELS: Record<View, { title: string; subtitle: string; Icon: typeof Sparkles }> = {
+  'ai-summary': {
+    title: 'ページAI要約',
+    subtitle: 'Powered by Claude · BYOK',
+    Icon: Sparkles,
+  },
+  'read-later': {
+    title: 'あとで読む',
+    subtitle: '保存したページを一覧・整理',
+    Icon: BookmarkPlus,
+  },
+};
+
 export function SidePanelShell() {
   const { theme, toggle } = useTheme();
+  const [view, setView] = useState<View>(() => readView());
+
+  // React to URL changes (back/forward) even though we don't use a router.
+  useEffect(() => {
+    const onPop = () => setView(readView());
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
   const closePanel = () => {
-    // chrome.sidePanel.close() requires Chrome 117+. Best-effort.
     try {
       // @ts-expect-error newer Chrome API
       chrome.sidePanel.close?.();
@@ -48,6 +77,9 @@ export function SidePanelShell() {
       window.close();
     }
   };
+
+  const meta = VIEW_LABELS[view];
+  const Icon = meta.Icon;
 
   return (
     <div className="bg-surface flex h-full min-h-0 flex-col">
@@ -57,13 +89,13 @@ export function SidePanelShell() {
         )}
       >
         <div className="bg-accent-500/12 text-accent-600 flex h-7 w-7 items-center justify-center rounded-md">
-          <Sparkles className="h-3.5 w-3.5" />
+          <Icon className="h-3.5 w-3.5" />
         </div>
         <div className="min-w-0 flex-1">
           <h1 className="text-fg-default truncate text-sm font-semibold leading-none">
-            ページAI要約
+            {meta.title}
           </h1>
-          <p className="text-fg-subtle mt-0.5 text-[11px]">Powered by Claude · BYOK</p>
+          <p className="text-fg-subtle mt-0.5 text-[11px]">{meta.subtitle}</p>
         </div>
         <IconButton
           label={theme === 'dark' ? 'ライトモード' : 'ダークモード'}
@@ -87,11 +119,11 @@ export function SidePanelShell() {
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
-        <SidePanelApp />
+        {view === 'ai-summary' ? <SidePanelApp /> : <SidePanelList />}
       </main>
 
       <footer className="border-border bg-surface-muted/50 text-fg-subtle shrink-0 border-t px-3 py-1.5 text-[10px]">
-        Sidekick · MIT OSS · ページ内容と要約はあなたの端末で処理されます
+        Sidekick · MIT OSS · 端末ローカルで処理されます
       </footer>
     </div>
   );

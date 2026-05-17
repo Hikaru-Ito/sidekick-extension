@@ -32,14 +32,30 @@ function truncate(text: string, max = MAX_CHARS): string {
 export async function extractActiveTab(): Promise<ExtractedPage | null> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) return null;
+  return extractTab(tab.id, tab.url);
+}
 
+/**
+ * Same as `extractActiveTab` but driven by a specific tab id. Callable from
+ * the background service worker where there is no "current window".
+ */
+export async function extractTab(tabId: number, knownUrl?: string): Promise<ExtractedPage | null> {
+  let url = knownUrl;
+  if (!url) {
+    try {
+      const tab = await chrome.tabs.get(tabId);
+      url = tab?.url;
+    } catch {
+      return null;
+    }
+  }
   // chrome:// and a few other schemes can't be scripted into.
   if (
-    !tab.url ||
-    tab.url.startsWith('chrome://') ||
-    tab.url.startsWith('chrome-extension://') ||
-    tab.url.startsWith('edge://') ||
-    tab.url.startsWith('about:')
+    !url ||
+    url.startsWith('chrome://') ||
+    url.startsWith('chrome-extension://') ||
+    url.startsWith('edge://') ||
+    url.startsWith('about:')
   ) {
     return null;
   }
@@ -47,7 +63,7 @@ export async function extractActiveTab(): Promise<ExtractedPage | null> {
   let raw: RawPage;
   try {
     const results = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
+      target: { tabId },
       func: grabRawPage,
     });
     const result = results?.[0]?.result;

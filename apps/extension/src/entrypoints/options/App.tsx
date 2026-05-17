@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ExternalLink, Github, Moon, Settings, Sparkles, Sun } from 'lucide-react';
+import { BookmarkPlus, ExternalLink, Github, Moon, Settings, Sparkles, Sun } from 'lucide-react';
 import { Button, IconButton, cn } from '@sidekick/ui-kit';
 import { ApiKeyInput } from '../../features/ai-summary/components/ApiKeyInput';
 import { ChoiceGroup } from '../../features/ai-summary/components/ChoiceGroup';
@@ -7,6 +7,7 @@ import { ModelPicker } from '../../features/ai-summary/components/ModelPicker';
 import { useAISummarySettings } from '../../features/ai-summary/hooks';
 import { clearHistory, updateSettings } from '../../features/ai-summary/storage';
 import type { AnthropicModelId, Lang, Length, Tone } from '../../features/ai-summary/types';
+import { WebhookSettings } from '../../features/read-later/views/WebhookSettings';
 
 function useTheme() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -159,6 +160,15 @@ export function OptionsApp() {
               履歴をすべて削除
             </Button>
           </div>
+        </Section>
+
+        <Section
+          number="5"
+          title="あとで読む · Webhook / 既定値"
+          description="保存時に外部ツールへ通知する Webhook と、AI要約を既定でオンにするかを設定します。"
+          icon={<BookmarkPlus className="h-4 w-4" />}
+        >
+          <WebhookSettings />
         </Section>
 
         <Section number="—" title="About" description="" dim>
