@@ -4,6 +4,7 @@ import {
   HISTORY_LIMIT,
   type AISummarySettings,
   type HistoryEntry,
+  type SummaryMode,
 } from './types';
 
 // API keys must stay on-device — never use `sync` storage.
@@ -11,6 +12,33 @@ const store = featureStorage('ai-summary', 'local');
 
 const SETTINGS_KEY = 'settings';
 const HISTORY_KEY = 'history';
+const INTENT_KEY = 'intent';
+
+/** Hand-off from popup launcher to the side panel. */
+export interface LauncherIntent {
+  mode: SummaryMode;
+  tabId: number;
+  autostart: boolean;
+  /** Epoch ms — used to expire stale intents (older than 30s). */
+  createdAt: number;
+}
+
+const INTENT_TTL_MS = 30_000;
+
+export async function readIntent(): Promise<LauncherIntent | null> {
+  const raw = await store.get<LauncherIntent | null>(INTENT_KEY, null);
+  if (!raw || typeof raw !== 'object') return null;
+  if (Date.now() - raw.createdAt > INTENT_TTL_MS) return null;
+  return raw;
+}
+
+export async function writeIntent(intent: LauncherIntent): Promise<void> {
+  await store.set(INTENT_KEY, intent);
+}
+
+export async function clearIntent(): Promise<void> {
+  await store.remove(INTENT_KEY);
+}
 
 export async function readSettings(): Promise<AISummarySettings> {
   const raw = await store.get<Partial<AISummarySettings> | null>(SETTINGS_KEY, null);

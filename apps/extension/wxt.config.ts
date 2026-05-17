@@ -12,11 +12,19 @@ export default defineConfig({
     description:
       'Your everyday browser sidekick — productivity utilities packed into a single open-source extension.',
     version: '0.1.0',
-    permissions: ['storage', 'alarms', 'tabs', 'scripting'],
+    permissions: ['storage', 'alarms', 'tabs', 'scripting', 'sidePanel'],
     host_permissions: ['<all_urls>'],
     action: {
       default_title: 'Sidekick',
       default_popup: 'popup.html',
+    },
+    side_panel: {
+      default_path: 'sidepanel.html',
+    },
+    // We always open the options page as a full tab via chrome.tabs.create in
+    // user-facing code, so we don't rely on `open_in_tab` here.
+    options_ui: {
+      page: 'options.html',
     },
     icons: {
       16: 'icon/16.png',

@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
-  ArrowRight,
   Copy,
   FileText,
   Globe,
-  Key,
   ListChecks,
   Loader2,
   MessageSquareText,
@@ -14,16 +12,15 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Button, Card, CardContent, SectionHeader, cn } from '@sidekick/ui-kit';
-import { ChoiceGroup } from './components/ChoiceGroup';
-import { ChatView } from './components/ChatView';
-import { KeyPointCards } from './components/KeyPointCards';
-import { StreamingMarkdown } from './components/StreamingMarkdown';
-import { UsageBadge } from './components/UsageBadge';
-import { SettingsView } from './views/SettingsView';
-import { useAISummarySettings } from './hooks';
-import { generateKeyPoints, streamChat, streamOverview, type UsageInfo } from './lib/anthropic';
-import { extractActiveTab, hashContent } from './lib/extract';
-import { appendHistory } from './storage';
+import { ChoiceGroup } from '../components/ChoiceGroup';
+import { ChatView } from '../components/ChatView';
+import { KeyPointCards } from '../components/KeyPointCards';
+import { StreamingMarkdown } from '../components/StreamingMarkdown';
+import { UsageBadge } from '../components/UsageBadge';
+import { useAISummarySettings } from '../hooks';
+import { generateKeyPoints, streamChat, streamOverview, type UsageInfo } from '../lib/anthropic';
+import { extractActiveTab, hashContent } from '../lib/extract';
+import { appendHistory, clearIntent, readIntent } from '../storage';
 import {
   ANTHROPIC_MODELS,
   type AnthropicModelId,
@@ -35,7 +32,7 @@ import {
   type Length,
   type SummaryMode,
   type Tone,
-} from './types';
+} from '../types';
 
 type Status =
   | { kind: 'idle' }
@@ -56,9 +53,8 @@ const MODE_LABELS: Record<SummaryMode, string> = {
   chat: 'チャット',
 };
 
-export function AISummaryPanel() {
+export function SidePanelApp() {
   const settings = useAISummarySettings();
-  const [showSettings, setShowSettings] = useState(false);
   const [page, setPage] = useState<ExtractedPage | null>(null);
   const [mode, setMode] = useState<SummaryMode>('overview');
   const [overrideModel, setOverrideModel] = useState<AnthropicModelId | null>(null);
@@ -251,20 +247,42 @@ export function AISummaryPanel() {
     }
   }, [settings.anthropicApiKey, page, chatInput, chatTurns, model, effLang, cancelInFlight]);
 
-  const runActive = () => {
+  const runActive = useCallback(() => {
     if (mode === 'overview') void runOverview();
     else if (mode === 'keypoints') void runKeyPoints();
-  };
+  }, [mode, runOverview, runKeyPoints]);
 
-  const isStreaming = status.kind === 'streaming';
+  // Read the launcher intent (set by the popup) once the page is extracted.
+  // If `autostart` is true and the requested mode is overview/keypoints, fire it.
+  const intentHandledRef = useRef(false);
+  useEffect(() => {
+    if (intentHandledRef.current) return;
+    if (!settings.anthropicApiKey || !page) return;
+    intentHandledRef.current = true;
+    void (async () => {
+      const intent = await readIntent();
+      if (!intent) return;
+      // Honor the chosen mode either way.
+      setMode(intent.mode);
+      await clearIntent();
+      if (intent.autostart) {
+        // Run on the next tick so state updates land before kicking off.
+        setTimeout(() => {
+          if (intent.mode === 'overview') void runOverview();
+          else if (intent.mode === 'keypoints') void runKeyPoints();
+        }, 0);
+      }
+    })();
+  }, [page, settings.anthropicApiKey, runOverview, runKeyPoints]);
+
   const hasResultForCurrentMode =
     (mode === 'overview' && overview.length > 0) ||
     (mode === 'keypoints' && keypoints.length > 0) ||
     (mode === 'chat' && chatTurns.length > 0);
 
-  if (showSettings) {
-    return <SettingsView onClose={() => setShowSettings(false)} />;
-  }
+  const openOptions = () => {
+    void chrome.tabs.create({ url: chrome.runtime.getURL('options.html') });
+  };
 
   // First-time empty state
   if (!settings.anthropicApiKey) {
@@ -280,9 +298,9 @@ export function AISummaryPanel() {
               開いているページを Claude に読んでもらい、概要・要点・追加質問へ答えてもらえます。
               最初に Anthropic の API キーを設定してください。
             </p>
-            <Button onClick={() => setShowSettings(true)} variant="primary" size="md">
-              <Key className="h-3.5 w-3.5" />
-              API キーを設定する
+            <Button onClick={openOptions} variant="primary" size="md">
+              <Settings className="h-3.5 w-3.5" />
+              設定ページを開く
             </Button>
           </CardContent>
         </Card>
@@ -296,7 +314,7 @@ export function AISummaryPanel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <PageCard page={page} status={status} onSettings={() => setShowSettings(true)} />
+      <PageCard page={page} status={status} onSettings={openOptions} />
 
       <ModeRow mode={mode} onChange={setMode} />
 

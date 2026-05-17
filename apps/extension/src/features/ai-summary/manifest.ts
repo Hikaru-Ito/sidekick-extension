@@ -1,6 +1,6 @@
 import { Sparkles } from 'lucide-react';
 import { defineFeature } from '../../lib/feature';
-import { AISummaryPanel } from './Panel';
+import { PopupLauncher } from './views/PopupLauncher';
 import { AISummarySummary } from './Summary';
 
 export default defineFeature({
@@ -10,7 +10,7 @@ export default defineFeature({
   icon: Sparkles,
   iconTone: 'iris',
   category: 'productivity',
-  permissions: ['storage', 'scripting', 'tabs'],
-  Panel: AISummaryPanel,
+  permissions: ['storage', 'scripting', 'tabs', 'sidePanel'],
+  Panel: PopupLauncher,
   Summary: AISummarySummary,
 });

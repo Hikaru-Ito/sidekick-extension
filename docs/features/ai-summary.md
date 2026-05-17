@@ -20,11 +20,20 @@ Three output modes are available:
 
 ## How to use
 
-1. Click the Sidekick icon and pick **ページAI要約**.
-2. The first time, paste your Anthropic API key into the settings screen. Click _キーをテストして保存_ — it makes a tiny request to verify the key, then persists it locally.
-3. Back on the main view, choose model / length / mode and click **このページを要約する**.
+1. Click the Sidekick icon and pick **ページAI要約**. The popup shows a _launcher_ — page card + three mode buttons.
+2. The first time, click ⚙ in the launcher to open the dedicated **settings page** in a new tab. Paste your Anthropic API key, click _キーをテストして保存_ (a tiny ping request verifies it), and pick your default model / length / tone / language.
+3. Back on the popup, click one of the three mode buttons. Sidekick opens a **side panel** anchored to the right side of the browser, kicks off the run, and streams the result there.
+4. The side panel is much taller than the popup — markdown summaries, key-point cards, and the chat thread all have room to breathe. Mode tabs, model picker, regenerate, and copy live there too.
 
 Switching modes on the same page within ~5 minutes reuses Anthropic's [prompt cache](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching), so subsequent runs cost ≈10% of the first.
+
+### Surfaces
+
+| Surface        | Where                                            | What it does                                |
+| -------------- | ------------------------------------------------ | ------------------------------------------- |
+| Popup launcher | Toolbar icon → ページAI要約                      | Pick a mode, hand off to the side panel     |
+| Side panel     | Right edge of the browser                        | Full summarizer UI — streaming, cards, chat |
+| Options page   | Toolbar icon → ⚙, or chrome://extensions Options | API key + defaults + history controls       |
 
 ## Settings
 
@@ -42,7 +51,7 @@ History keeps the last 20 (URL × mode × model) summaries in `chrome.storage.lo
 | Field              | Value                                                                                                                                                                              |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Category           | productivity                                                                                                                                                                       |
-| Permissions        | `storage`, `scripting`, `tabs`                                                                                                                                                     |
+| Permissions        | `storage`, `scripting`, `tabs`, `sidePanel`                                                                                                                                        |
 | Storage area       | `chrome.storage.local` (`feature:ai-summary:settings`, `feature:ai-summary:history`)                                                                                               |
 | Content extraction | `chrome.scripting.executeScript` injects a small function that returns the active tab's HTML; Mozilla [Readability](https://github.com/mozilla/readability) parses it in the popup |
 | Max page size      | First ~50 000 characters of the extracted main content (well inside 200K context)                                                                                                  |
