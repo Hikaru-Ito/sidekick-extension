@@ -39,7 +39,7 @@ export const features: LandingFeature[] = [
   {
     id: 'ai-summary',
     category: 'productivity',
-    status: 'beta',
+    status: 'stable',
     i18n: {
       en: {
         name: 'AI Page Summary',

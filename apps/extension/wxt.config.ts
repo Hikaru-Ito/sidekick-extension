@@ -11,7 +11,7 @@ export default defineConfig({
     short_name: 'Sidekick',
     description:
       'Your everyday browser sidekick — productivity utilities packed into a single open-source extension.',
-    version: '0.1.0',
+    version: '0.2.0',
     permissions: ['storage', 'alarms', 'tabs', 'scripting', 'sidePanel'],
     host_permissions: ['<all_urls>'],
     action: {

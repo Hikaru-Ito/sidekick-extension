@@ -2,6 +2,41 @@
 
 All notable changes to **Sidekick Extension** are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] — 2026-05-17
+
+### Added — AI Page Summary feature
+
+A new productivity feature that asks Claude to read the active tab and answer in three ways, all on one screen:
+
+- **Key points cards** — 3 to 5 emoji-prefixed cards covering the most important takeaways.
+- **Overview** — a streaming markdown summary with structure (TL;DR → details → why-it-matters), tuned to use plain language and inline glosses for jargon.
+- **Follow-up chat** — once the summary is on screen, a sticky input bar at the bottom of the panel lets you ask anything. Answers stream into a "追加の質問" thread directly below the summary.
+
+Architecture
+
+- **BYOK Anthropic key**, stored in `chrome.storage.local` only. Never synced, never sent anywhere except `api.anthropic.com`.
+- Calls hit the Messages API from the side panel via `@anthropic-ai/sdk` with `dangerouslyAllowBrowser: true`.
+- Page content is extracted with Mozilla [Readability](https://github.com/mozilla/readability) via `chrome.scripting.executeScript` (~50 KB cap).
+- `cache_control: { type: 'ephemeral' }` on the page envelope so successive runs reuse Anthropic's prompt cache (~90% cheaper).
+- Default model `claude-opus-4-7` with adaptive thinking; Sonnet 4.6 is the alternate.
+
+Surfaces
+
+- **Popup launcher** — clicking the toolbar icon → "ページAI要約" opens the side panel and auto-fires the summary in one click.
+- **Side panel** — dedicated right-side surface with full-height room for the result. Render order: page card → key-point cards → overview → result footer (copy/regen, usage in JPY when output is Japanese) → chat thread (after the first question) → sticky chat input bar.
+- **Options page** — full-tab settings page for API key (with ping test), default model / length / tone / output language, and history controls. Opens in a new tab whether triggered from the popup, from `chrome://extensions`, or from a right-click → Options.
+
+### Fixed
+
+- **Auto Reload schedule mode** could theoretically chain reloads in tight pathological cases; added a 2-second per-tab cooldown and a minimum 1-second scheduling delay, plus strict storage migration that drops malformed entries.
+- Auto-scroll in the chat thread now actually reaches the bottom — it pins `scrollTop = scrollHeight` on the scrollable ancestor instead of `scrollIntoView` on a sentinel, so the sticky input bar doesn't cover the latest token.
+- A stale Haiku 4.5 model id surviving from before we trimmed the model list was producing 400s on adaptive thinking. Stored preferences are now whitelist-validated on every read and the `thinking: { type: 'adaptive' }` parameter is gated to models that support it.
+
+### Tooling
+
+- New build hook injects `options_ui.open_in_tab = true` so the options page always opens as a real tab.
+- `pnpm verify:extension` covers AI Summary's popup launcher in addition to the existing Auto Reload coverage.
+
 ## [0.1.0] — 2026-05-17
 
 First public release.
@@ -51,4 +86,5 @@ First public release.
 - Minimum 1-second scheduling delay — `scheduleFire` never fires synchronously, even for past-due times.
 - Strict storage migration that drops malformed entries instead of trusting them.
 
+[0.2.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.1.0

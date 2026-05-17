@@ -10,13 +10,14 @@
 
 ## ✨ Features
 
-| Feature       | Category     | Status  |
-| ------------- | ------------ | ------- |
-| Auto Reload   | Automation   | Stable  |
-| Tab Suspender | Productivity | Planned |
-| Screenshot    | Productivity | Planned |
-| Color Picker  | Developer    | Planned |
-| JSON Viewer   | Developer    | Planned |
+| Feature         | Category     | Status  |
+| --------------- | ------------ | ------- |
+| Auto Reload     | Automation   | Stable  |
+| AI Page Summary | Productivity | Stable  |
+| Tab Suspender   | Productivity | Planned |
+| Screenshot      | Productivity | Planned |
+| Color Picker    | Developer    | Planned |
+| JSON Viewer     | Developer    | Planned |
 
 See the [landing page](https://hikaru-ito.github.io/sidekick-extension/) or [docs/features/](./docs/features/) for details.
 
