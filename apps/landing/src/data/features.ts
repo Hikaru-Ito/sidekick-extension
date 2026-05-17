@@ -119,6 +119,35 @@ export const features: LandingFeature[] = [
       },
     },
   },
+  {
+    id: 'tabelog-gmap',
+    category: 'lifestyle',
+    status: 'beta',
+    i18n: {
+      en: {
+        name: 'Tabelog × Google Maps',
+        description:
+          'Adds a Google Maps rating card under the rating header of every Tabelog restaurant page. The data is fetched by briefly opening a hidden Maps tab and scraping the rating + review count.',
+        highlights: [
+          'Auto-injected card under Tabelog rating: ★, review count, confidence badge, Maps link',
+          'Hidden-tab scrape via chrome.scripting.executeScript (no API key required)',
+          'IndexedDB cache (7-day TTL, LRU 500 entries) — repeat visits are instant',
+          'Rate-limited (1 lookup / 2 s) with CAPTCHA detection + 30-minute cooldown',
+        ],
+      },
+      ja: {
+        name: '食べログ × Google Maps',
+        description:
+          '食べログの店舗詳細ページに、その店の Google Maps 評価カードを自動挿入します。バックグラウンドで Maps を一瞬開いて評価と口コミ数をスクレイプし、7日キャッシュ。',
+        highlights: [
+          '食べログ評価カードの直下に Google Maps の評価カードを自動挿入',
+          'API キー不要 — 隠しタブで Maps を開いて DOM から評価を抽出',
+          'IndexedDB に 7 日キャッシュ (上限 500 件、LRU)。再訪は即時表示',
+          'レート制限 1 件 /2 秒 + CAPTCHA 検出時 30 分自動停止',
+        ],
+      },
+    },
+  },
 ];
 
 export const plannedFeatures: LandingFeature[] = [

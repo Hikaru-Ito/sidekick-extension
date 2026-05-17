@@ -1,6 +1,14 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { ReadLaterItem } from '../types';
 
+/**
+ * NOTE on schema version: every feature that opens the `sidekick` database
+ * must declare the same DB_VERSION and the same combined upgrade callback —
+ * otherwise the openDB calls block each other (one connection upgrading
+ * blocks the other still open at the older version).
+ *
+ * Currently shared with: tabelog-gmap (object store: tabelogGmap, v2).
+ */
 interface SidekickDB extends DBSchema {
   readLater: {
     key: string;
@@ -12,22 +20,39 @@ interface SidekickDB extends DBSchema {
       'by-readAt': number;
     };
   };
+  tabelogGmap: {
+    key: string;
+    value: Record<string, unknown>;
+    indexes: { 'by-fetchedAt': number };
+  };
 }
 
 const DB_NAME = 'sidekick';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBPDatabase<SidekickDB>> | null = null;
 
 function getDB(): Promise<IDBPDatabase<SidekickDB>> {
   if (!dbPromise) {
     dbPromise = openDB<SidekickDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        const store = db.createObjectStore('readLater', { keyPath: 'id' });
-        store.createIndex('by-savedAt', 'savedAt');
-        store.createIndex('by-url', 'url', { unique: false });
-        store.createIndex('by-tags', 'tags', { multiEntry: true });
-        store.createIndex('by-readAt', 'readAt');
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          const store = db.createObjectStore('readLater', { keyPath: 'id' });
+          store.createIndex('by-savedAt', 'savedAt');
+          store.createIndex('by-url', 'url', { unique: false });
+          store.createIndex('by-tags', 'tags', { multiEntry: true });
+          store.createIndex('by-readAt', 'readAt');
+        }
+        if (oldVersion < 2) {
+          const tg = db.createObjectStore('tabelogGmap', { keyPath: 'tabelogId' });
+          tg.createIndex('by-fetchedAt', 'fetchedAt');
+        }
+      },
+      blocking() {
+        // Another connection is trying to upgrade. Release ours so it can
+        // proceed; the next getDB() call will reopen at the new version.
+        void dbPromise?.then((db) => db.close());
+        dbPromise = null;
       },
     });
   }
