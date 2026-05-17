@@ -2,6 +2,31 @@
 
 All notable changes to **Sidekick Extension** are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] — 2026-05-17
+
+### Added — Read Later feature
+
+A new productivity feature for capturing the current tab to a local reading queue, with optional AI summary and webhook fan-out to your tools.
+
+- **Popup save** — one-click capture from the toolbar with inline tag entry. AI-summary opt-in fires summary generation in the background; "Open list" hands off to the side panel.
+- **Side panel list** — searchable, filterable (all / unread / read), with tag chips, OGP cover thumbnails, inline summary expansion, per-row read/delete actions, and live delivery status badges.
+- **Webhook fan-out** — Slack (Incoming Webhook), Discord (Incoming Webhook), Linear (`issueCreate` via GraphQL with team-key → UUID resolution), or any custom HTTP endpoint. Each webhook has its own enable toggle, name, body template, and test-send button.
+- **Template engine** — Mustache-style `{{variable}}` substitution with conditional `{{#section}}…{{/section}}` blocks. Variables: `{{title}} {{url}} {{hostname}} {{description}} {{image}} {{tags}} {{notes}} {{summary}} {{overview}} {{keypoints}} {{savedAt}}`.
+- **OGP image extraction** — `og:image` / `twitter:image` / JSON-LD article image / `link rel="image_src"`, falling back to the largest visible `<img>` in the Readability-parsed article. Resolved to absolute URLs and surfaced both in the side panel thumbnail and webhook payloads (Slack `image_url` attachment / Discord embed). Templates can place the image explicitly via `{{image}}`; when absent, auto-attachment keeps older configs working.
+- **Options page** — new "あとで読む · Webhook / 既定値" section hosting webhook config + "summary by default" toggle.
+
+Architecture
+
+- **IndexedDB local storage** (`idb`) — `readLater` object store keyed by item id, indexed by saved-at / URL / tags / read-at. No cloud sync.
+- **`BroadcastChannel('sidekick:read-later')`** — cross-context change notification so popup, side panel, and options page all reflect the same state without polling.
+- **MV3-aware side-effects pipeline** — save returns immediately while the background service worker runs AI summary + webhooks asynchronously.
+- **chrome.alarms safety net** — every save schedules a retry alarm (`+1.5 min` with summary, `+0.5 min` without). Alarm wakes the SW even after termination and re-dispatches any deliveries left in `pending` state, so webhooks never disappear into a killed service worker.
+- **SW-boot recovery** — on every SW startup, items saved in the last 24 h with `pending` deliveries are auto-retried.
+
+### Fixed
+
+- The popup gear icon now opens the options page via `chrome.tabs.create` instead of `chrome.runtime.openOptionsPage()`. The latter could reject with "Could not create an options page" in popup contexts when the popup closed before the call resolved.
+
 ## [0.2.0] — 2026-05-17
 
 ### Added — AI Page Summary feature
@@ -86,5 +111,6 @@ First public release.
 - Minimum 1-second scheduling delay — `scheduleFire` never fires synchronously, even for past-due times.
 - Strict storage migration that drops malformed entries instead of trusting them.
 
+[0.3.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.1.0
