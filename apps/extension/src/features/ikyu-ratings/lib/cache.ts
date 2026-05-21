@@ -1,10 +1,10 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import { MAX_CACHE_ENTRIES, type GmapLookup } from '../types';
+import { MAX_CACHE_ENTRIES, type IkyuLookup } from '../types';
 
 /**
- * IDB cache for Google Maps lookups, keyed by Tabelog place id.
- * Reuses the same database name as Read Later + Ikyu Ratings (single DB
- * per extension). See `read-later/lib/db.ts` for the canonical schema notes.
+ * IDB cache for Ikyu aggregate lookups (Tabelog + Maps), keyed by Ikyu
+ * restaurant id. Shares the `sidekick` database with read-later and
+ * tabelog-gmap — see `read-later/lib/db.ts` for the schema notes.
  */
 interface SidekickDB extends DBSchema {
   readLater: {
@@ -14,12 +14,12 @@ interface SidekickDB extends DBSchema {
   };
   tabelogGmap: {
     key: string;
-    value: GmapLookup;
+    value: Record<string, unknown>;
     indexes: { 'by-fetchedAt': number };
   };
   ikyuRatings: {
     key: string;
-    value: Record<string, unknown>;
+    value: IkyuLookup;
     indexes: { 'by-fetchedAt': number };
   };
 }
@@ -50,7 +50,6 @@ function getDB(): Promise<IDBPDatabase<SidekickDB>> {
         }
       },
       blocking() {
-        // See sibling note in read-later/lib/db.ts — close to allow upgrades.
         void dbPromise?.then((db) => db.close());
         dbPromise = null;
       },
@@ -59,7 +58,7 @@ function getDB(): Promise<IDBPDatabase<SidekickDB>> {
   return dbPromise;
 }
 
-const CHANNEL_NAME = 'sidekick:tabelog-gmap';
+const CHANNEL_NAME = 'sidekick:ikyu-ratings';
 
 function broadcast(): void {
   try {
@@ -67,7 +66,7 @@ function broadcast(): void {
     ch.postMessage({ type: 'changed', at: Date.now() });
     ch.close();
   } catch {
-    /* unavailable in some contexts */
+    /* unavailable */
   }
 }
 
@@ -82,48 +81,41 @@ export function subscribeChanges(handler: () => void): () => void {
   return () => ch?.close();
 }
 
-export async function getCached(tabelogId: string): Promise<GmapLookup | null> {
+export async function getCached(ikyuId: string): Promise<IkyuLookup | null> {
   const db = await getDB();
-  const v = await db.get('tabelogGmap', tabelogId);
+  const v = await db.get('ikyuRatings', ikyuId);
   return v ?? null;
 }
 
-export async function setCached(entry: GmapLookup): Promise<void> {
+export async function setCached(entry: IkyuLookup): Promise<void> {
   const db = await getDB();
-  await db.put('tabelogGmap', entry);
+  await db.put('ikyuRatings', entry);
   await enforceCap();
-  broadcast();
-}
-
-export async function deleteCached(tabelogId: string): Promise<void> {
-  const db = await getDB();
-  await db.delete('tabelogGmap', tabelogId);
   broadcast();
 }
 
 export async function clearAll(): Promise<void> {
   const db = await getDB();
-  await db.clear('tabelogGmap');
+  await db.clear('ikyuRatings');
   broadcast();
 }
 
 export async function countCached(): Promise<number> {
   const db = await getDB();
-  return db.count('tabelogGmap');
+  return db.count('ikyuRatings');
 }
 
-export function isFresh(entry: GmapLookup, ttlDays: number): boolean {
+export function isFresh(entry: IkyuLookup, ttlDays: number): boolean {
   const ttlMs = ttlDays * 24 * 60 * 60 * 1000;
   return Date.now() - entry.fetchedAt < ttlMs;
 }
 
-/** Drop oldest entries when the store grows beyond MAX_CACHE_ENTRIES. */
 async function enforceCap(): Promise<void> {
   const db = await getDB();
-  const count = await db.count('tabelogGmap');
+  const count = await db.count('ikyuRatings');
   if (count <= MAX_CACHE_ENTRIES) return;
   const excess = count - MAX_CACHE_ENTRIES;
-  const tx = db.transaction('tabelogGmap', 'readwrite');
+  const tx = db.transaction('ikyuRatings', 'readwrite');
   const idx = tx.store.index('by-fetchedAt');
   let cursor = await idx.openCursor();
   let dropped = 0;

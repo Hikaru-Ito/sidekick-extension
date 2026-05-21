@@ -7,7 +7,9 @@ import type { ReadLaterItem } from '../types';
  * otherwise the openDB calls block each other (one connection upgrading
  * blocks the other still open at the older version).
  *
- * Currently shared with: tabelog-gmap (object store: tabelogGmap, v2).
+ * Currently shared with:
+ *   - tabelog-gmap (object store: tabelogGmap, v2)
+ *   - ikyu-ratings (object store: ikyuRatings, v3)
  */
 interface SidekickDB extends DBSchema {
   readLater: {
@@ -25,10 +27,15 @@ interface SidekickDB extends DBSchema {
     value: Record<string, unknown>;
     indexes: { 'by-fetchedAt': number };
   };
+  ikyuRatings: {
+    key: string;
+    value: Record<string, unknown>;
+    indexes: { 'by-fetchedAt': number };
+  };
 }
 
 const DB_NAME = 'sidekick';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let dbPromise: Promise<IDBPDatabase<SidekickDB>> | null = null;
 
@@ -46,6 +53,10 @@ function getDB(): Promise<IDBPDatabase<SidekickDB>> {
         if (oldVersion < 2) {
           const tg = db.createObjectStore('tabelogGmap', { keyPath: 'tabelogId' });
           tg.createIndex('by-fetchedAt', 'fetchedAt');
+        }
+        if (oldVersion < 3) {
+          const ik = db.createObjectStore('ikyuRatings', { keyPath: 'ikyuId' });
+          ik.createIndex('by-fetchedAt', 'fetchedAt');
         }
       },
       blocking() {

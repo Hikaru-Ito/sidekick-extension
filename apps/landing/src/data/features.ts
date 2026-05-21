@@ -148,6 +148,35 @@ export const features: LandingFeature[] = [
       },
     },
   },
+  {
+    id: 'ikyu-ratings',
+    category: 'lifestyle',
+    status: 'beta',
+    i18n: {
+      en: {
+        name: 'Ikyu × Tabelog + Maps',
+        description:
+          'Adds a two-row rating panel under the page header of every Ikyu restaurant page, showing the same restaurant scored on Tabelog and Google Maps side by side. Both scrapes run by briefly opening hidden tabs in the background.',
+        highlights: [
+          'Auto-injected panel under the Ikyu header: Tabelog rating + Maps rating',
+          'Two sequential hidden-tab scrapes (no API keys, no shared backend)',
+          'Name-similarity scoring picks the right place even from list-view results',
+          'IndexedDB cache (7-day TTL, LRU 500 entries) — repeat visits are instant',
+        ],
+      },
+      ja: {
+        name: '一休 × 食べログ + Maps',
+        description:
+          '一休レストランの店舗詳細ページに、その店の食べログと Google Maps の評価を 2 段で自動表示します。バックグラウンドで両サイトを順次スクレイプし 7 日キャッシュ。',
+        highlights: [
+          '一休のページヘッダ直下に「食べログ ★」「Google Maps ★」を 2 段表示',
+          '隠しタブで食べログ → Maps を順次スクレイプ (API キー不要)',
+          '店名類似度で正しい店舗を選択、信頼度バッジ付き',
+          'IndexedDB に 7 日キャッシュ (上限 500 件、LRU)。再訪は即時表示',
+        ],
+      },
+    },
+  },
 ];
 
 export const plannedFeatures: LandingFeature[] = [
