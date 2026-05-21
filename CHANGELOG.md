@@ -2,6 +2,53 @@
 
 All notable changes to **Sidekick Extension** are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] — 2026-05-21
+
+### Added — Ikyu × Tabelog + Maps feature
+
+A new lifestyle feature for restaurant browsing on Ikyu (一休レストラン).
+When you open an Ikyu restaurant detail page, Sidekick automatically injects
+a compact two-row panel showing the same restaurant scored on both Tabelog
+and Google Maps.
+
+- **Two-row card** — Tabelog row and Google Maps row, each with star
+  rating, review count, confidence badge, and a direct link to the source.
+  Rendered inside a Shadow DOM so it doesn't conflict with Ikyu's CSS.
+- **Tabelog via Google site-search** — the orchestrator opens
+  `google.com/search?q={name} {area} site:tabelog.com` in a hidden tab,
+  picks the first SERP link matching Tabelog's detail-page pattern, then
+  _navigates the same tab_ to that URL and reads the actual rating + review
+  count off the detail-page header. Google's relevance ranking is
+  significantly stronger than Tabelog's internal search, so the right
+  restaurant is picked even for long fancy names — and the rating comes
+  from the detail page itself, not a list-view average.
+- **Google Maps** — reuses the `scrapeGmaps` self-contained function from
+  the existing Tabelog × Google Maps feature.
+- **Name-similarity gate** — each row carries a confidence badge
+  (`高確度 ≥0.8` / `中確度 0.6–0.8` / `要確認 <0.6`) computed from the
+  Dice-bigram similarity between the Ikyu store name and what the source
+  page returned.
+- **Settings panel** — enable/disable, cache TTL (1/7/30 days), cache size
+  display + clear button, optional fallback search links.
+
+Architecture
+
+- IndexedDB store `ikyuRatings` added via a v3 schema migration. All three
+  feature DB modules (read-later, tabelog-gmap, ikyu-ratings) now declare
+  the same combined schema with matching `blocking()` callbacks so they
+  can open the shared `sidekick` database concurrently.
+- New `waitForTabHostComplete(tabId, hostFragment, timeoutMs)` helper that
+  only resolves once the tab has committed to a URL on the expected host —
+  avoids a race where a `tabs.update` could otherwise see a stale
+  `status: "complete"` from the previous page.
+- Two-step Tabelog scrape function pair (`findTabelogUrlOnGoogle` +
+  `scrapeTabelogDetailPage`), both self-contained for
+  `chrome.scripting.executeScript`. The detail scrape returns a `debug`
+  payload (matched selectors, page title, final URL) so future drift is
+  diagnosable from a single log line.
+- Hard 45 s timeout on the background message handler (two sequential
+  scrapes), with a 30-minute CAPTCHA cooldown shared between sources.
+
 ## [0.4.0] — 2026-05-18
 
 ### Added — Tabelog × Google Maps feature
@@ -161,6 +208,7 @@ First public release.
 - Minimum 1-second scheduling delay — `scheduleFire` never fires synchronously, even for past-due times.
 - Strict storage migration that drops malformed entries instead of trusting them.
 
+[0.5.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.5.0
 [0.4.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.4.0
 [0.3.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Hikaru-Ito/sidekick-extension/releases/tag/v0.2.0

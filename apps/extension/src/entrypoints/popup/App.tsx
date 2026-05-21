@@ -116,7 +116,7 @@ export function App() {
       </main>
 
       <footer className="border-border bg-surface-muted/50 text-fg-subtle shrink-0 border-t px-3 py-2 text-[10px]">
-        Sidekick v0.4.0 · {features.length} 機能 · MIT OSS
+        Sidekick v0.5.0 · {features.length} 機能 · MIT OSS
       </footer>
     </div>
   );
